@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle } from 'lucide-react';
+import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle, Mail, Phone, MessageSquare } from 'lucide-react';
 
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -7,6 +7,7 @@ const SupportDashboard = () => {
   
   // AI Integration state
   const [complaintText, setComplaintText] = useState('');
+  const [channel, setChannel] = useState('Email');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [liveTicket, setLiveTicket] = useState(null);
   const [tickets, setTickets] = useState([
@@ -30,14 +31,15 @@ const SupportDashboard = () => {
       const response = await fetch('http://localhost:5000/api/ai/process_complaint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: complaintText })
+        body: JSON.stringify({ text: complaintText, channel: channel })
       });
       const data = await response.json();
       
       const newTicket = {
         id: `TKT-${Math.floor(Math.random() * 1000) + 2000}`,
         customer: 'Live Insight',
-        title: data.original_text.substring(0, 30) + '...',
+        channel: channel,
+        title: data.original_text.substring(0, 40) + (data.original_text.length > 40 ? '...' : ''),
         category: data.category || 'Unknown',
         priority: data.priority || 'Medium',
         status: 'Pending',
@@ -68,21 +70,47 @@ const SupportDashboard = () => {
           </div>
           <div style={{ padding: '0 1.5rem 1.5rem' }}>
              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-               Enter a raw customer complaint below. Our ML model will instantly categorize it, assign priority based on sentiment, and the LLM recommendation engine will generate an actionable step.
+               Paste a customer complaint from any channel below. Our ML pipeline processes the raw text — whether it's an email body, call transcript, or chat message — to instantly classify, prioritize, and recommend actions.
              </p>
-             <div style={{ display: 'flex', gap: '1rem' }}>
-               <input 
-                 type="text" 
+             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+               {['Email', 'Call', 'Chat'].map((ch) => (
+                 <button
+                   key={ch}
+                   onClick={() => setChannel(ch)}
+                   style={{
+                     display: 'flex', alignItems: 'center', gap: '6px',
+                     padding: '8px 16px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 500,
+                     cursor: 'pointer', transition: 'all 0.2s ease',
+                     background: channel === ch ? 'var(--brand-primary)' : 'transparent',
+                     color: channel === ch ? '#fff' : 'var(--text-secondary)',
+                     border: channel === ch ? '1px solid var(--brand-primary)' : '1px solid var(--border-subtle)',
+                   }}
+                 >
+                   {ch === 'Email' && <Mail size={14} />}
+                   {ch === 'Call' && <Phone size={14} />}
+                   {ch === 'Chat' && <MessageSquare size={14} />}
+                   {ch}
+                 </button>
+               ))}
+             </div>
+             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+               <textarea 
                  className="form-input" 
-                 placeholder="e.g., 'Box was absolutely broken when it arrived!!'" 
+                 placeholder={channel === 'Email' 
+                   ? 'Paste the full email body here...\n\ne.g., "Dear Support, I received my order #4521 yesterday and the box was completely crushed. The product inside was damaged..."'
+                   : channel === 'Call'
+                   ? 'Paste the call transcript or summary here...'
+                   : 'Paste the chat message here...'}
                  value={complaintText}
                  onChange={(e) => setComplaintText(e.target.value)}
-                 style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}
+                 rows={4}
+                 style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: '1.5' }}
                />
                <button 
                  className="btn btn-primary glow-btn" 
                  onClick={handleClassifyAI} 
                  disabled={isAiLoading || !complaintText}
+                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
                >
                  {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
                </button>
@@ -102,7 +130,7 @@ const SupportDashboard = () => {
               <thead>
                 <tr>
                   <th>Ticket ID</th>
-                  <th>Customer</th>
+                  <th>Channel</th>
                   <th>Issue Title</th>
                   <th>Category (AI)</th>
                   <th>Priority (AI)</th>
@@ -122,7 +150,12 @@ const SupportDashboard = () => {
                   tickets.map((ticket, i) => (
                     <tr key={i} onClick={() => setSelectedTicket(ticket)} style={{ cursor: 'pointer' }}>
                       <td style={{ color: 'var(--brand-primary)', fontWeight: '500' }}>{ticket.id}</td>
-                      <td>{ticket.customer}</td>
+                      <td style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {ticket.channel === 'Email' && <Mail size={13} />}
+                        {ticket.channel === 'Call' && <Phone size={13} />}
+                        {ticket.channel === 'Chat' && <MessageSquare size={13} />}
+                        {ticket.channel || '—'}
+                      </td>
                       <td>{ticket.title}</td>
                       <td>{ticket.category}</td>
                       <td><span className={`badge ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></td>
