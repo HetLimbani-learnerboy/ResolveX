@@ -33,7 +33,6 @@ import AuditComplaints from './pages/qa-dashboard/AuditComplaints';
 import Misclassifications from './pages/qa-dashboard/Misclassifications';
 import RecurringIssues from './pages/qa-dashboard/RecurringIssues';
 import ResolutionReview from './pages/qa-dashboard/ResolutionReview';
-import Trends from './pages/qa-dashboard/Trends';
 import Feedback from './pages/qa-dashboard/Feedback';
 
 
@@ -316,22 +315,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/trends"
-            element={
-              <ProtectedRoute
-                allowedRoles={[
-                  'qa_team',
-                  'admin',
-                  'operations_manager'
-                ]}
-              >
-                <DashboardLayout>
-                  <Trends />
-                </DashboardLayout>
-              </ProtectedRoute>
-            }
-          />
+
 
           <Route
             path="/feedback"

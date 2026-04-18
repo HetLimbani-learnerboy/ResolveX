@@ -50,8 +50,31 @@ const CustomerDashboard = () => {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Real data states
+  const [tickets, setTickets] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Feedback states
+  const [selectedComplaintId, setSelectedComplaintId] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackHover, setFeedbackHover] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
   const sessionId = useRef(`session_${Date.now()}`);
+
+  // Fetch real complaints from database
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/complaints/all`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        setTickets(Array.isArray(data) ? data : []);
+        setDataLoading(false);
+      })
+      .catch(() => setDataLoading(false));
+  }, [BACKEND_URL]);
 
   useEffect(() => {
     if (isChatOpen) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -174,15 +197,40 @@ const CustomerDashboard = () => {
     submitComplaint();
   };
 
-  const mockTickets = [
-    { id: 'TKT-1042', title: 'Payment System - Subscription Error', status: 'In Progress', date: '2 hours ago', progress: 50 },
-    { id: 'TKT-1040', title: 'Smartphone X200 - Screen Issue', status: 'Resolved', date: 'Yesterday', progress: 100 },
-  ];
+  // Build track-status data from real tickets
+  const trackableTickets = tickets.map(t => {
+    let progress = 0;
+    const s = (t.status || 'Open').toLowerCase();
+    if (s === 'open') progress = 10;
+    else if (s === 'in progress' || s === 'assigned') progress = 50;
+    else if (s === 'resolved' || s === 'closed') progress = 100;
+    else progress = 33;
+    return {
+      id: String(t.id).substring(0, 8).toUpperCase(),
+      title: t.subject || (t.complaint_text ? t.complaint_text.substring(0, 50) : 'No Subject'),
+      status: t.status || 'Open',
+      category: t.category || 'General',
+      date: t.created_at ? new Date(t.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A',
+      progress
+    };
+  });
 
-  const mockNotifications = [
-    { id: 1, text: 'Your ticket TKT-1042 has been assigned to an agent.', time: '1 hour ago', read: false },
-    { id: 2, text: 'Ticket TKT-1040 has been resolved. Please leave feedback.', time: '1 day ago', read: true },
-    { id: 3, text: 'Welcome to ResolveX! We are here to help.', time: '2 days ago', read: true },
+  // Build notifications from real ticket data
+  const notifications = [
+    { id: 'welcome', text: 'Welcome to ResolveX! We are here to help you resolve issues.', time: 'System', read: true },
+    ...tickets.slice(0, 5).map((t, i) => {
+      const status = (t.status || 'Open').toLowerCase();
+      let msg = '';
+      if (status === 'resolved' || status === 'closed') msg = `Your ticket "${t.subject || 'complaint'}" has been resolved. Please leave feedback.`;
+      else if (status === 'in progress' || status === 'assigned') msg = `Your ticket "${t.subject || 'complaint'}" has been assigned to an agent.`;
+      else msg = `Your ticket "${t.subject || 'complaint'}" has been received. We are reviewing it.`;
+      return {
+        id: t.id || i,
+        text: msg,
+        time: t.created_at ? new Date(t.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Recently',
+        read: status === 'open'
+      };
+    })
   ];
 
   const renderComplaintModal = () => {
@@ -323,23 +371,26 @@ const CustomerDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {[
-              { id: 'TKT-1042', product: 'Payment System', subject: 'Payment failed but amount deducted', status: 'In Progress', date: '2 hours ago', color: 'var(--brand-primary)' },
-              { id: 'TKT-1040', product: 'Smartphone X200', subject: 'Screen Issue', status: 'Resolved', date: 'Yesterday', color: '#10b981' },
-              { id: 'TKT-0921', product: 'Wireless Earbuds', subject: 'Battery Drain', status: 'Resolved', date: '12 Oct, 2025', color: '#10b981' }
-            ].map((row, index) => (
-              <tr key={row.id} style={{ borderBottom: index === 2 ? 'none' : '1px solid var(--border-subtle)', transition: 'background 0.2s', cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-secondary)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>{row.id}</td>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{row.product}</td>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-primary)' }}>{row.subject}</td>
+            {tickets.length > 0 ? tickets.map((row, index) => {
+              const status = row.status || 'Open';
+              const isResolved = status === 'Resolved' || status === 'Closed';
+              const statusColor = isResolved ? '#10b981' : status === 'In Progress' ? 'var(--brand-primary)' : '#f59e0b';
+              return (
+              <tr key={row.id || index} style={{ borderBottom: '1px solid var(--border-subtle)', transition: 'background 0.2s', cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-secondary)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+                <td style={{ padding: '1rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-primary)' }}>{String(row.id).substring(0, 8).toUpperCase()}</td>
+                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{row.category || 'General'}</td>
+                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-primary)' }}>{row.subject || row.complaint_text?.substring(0, 40)}</td>
                 <td style={{ padding: '1rem' }}>
-                  <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, background: `${row.color === '#10b981' ? 'rgba(16,185,129,0.1)' : 'rgba(37,99,235,0.1)'}`, color: row.color }}>
-                    {row.status}
+                  <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, background: isResolved ? 'rgba(16,185,129,0.1)' : 'rgba(37,99,235,0.1)', color: statusColor }}>
+                    {status}
                   </span>
                 </td>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{row.date}</td>
+                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{row.created_at ? new Date(row.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</td>
               </tr>
-            ))}
+              );
+            }) : (
+              <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>{dataLoading ? 'Loading...' : 'No complaints yet. Submit your first complaint!'}</td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -354,7 +405,7 @@ const CustomerDashboard = () => {
         </h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '1rem' }}>
-        {mockTickets.map(ticket => (
+        {trackableTickets.length > 0 ? trackableTickets.map(ticket => (
           <div key={ticket.id} style={{ 
             padding: '1.75rem', border: '1px solid var(--border-subtle)', borderRadius: '12px', background: 'var(--bg-secondary)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
           }}>
@@ -403,7 +454,11 @@ const CustomerDashboard = () => {
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--bg-secondary)', borderRadius: '12px' }}>
+            {dataLoading ? 'Loading tickets...' : 'No tickets to track yet.'}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -416,7 +471,7 @@ const CustomerDashboard = () => {
         </h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
-        {mockNotifications.map(notif => (
+        {notifications.length > 0 ? notifications.map(notif => (
           <div key={notif.id} style={{ 
             padding: '1rem 1.5rem', borderRadius: '8px', background: notif.read ? 'var(--bg-primary)' : 'rgba(37,99,235,0.05)', borderLeft: notif.read ? '3px solid transparent' : '3px solid var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s', cursor: 'pointer'
           }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-secondary)'} onMouseOut={e => e.currentTarget.style.background = notif.read ? 'var(--bg-primary)' : 'rgba(37,99,235,0.05)'}>
@@ -428,12 +483,45 @@ const CustomerDashboard = () => {
                 {notif.text}
               </span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{notif.time}</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{notif.time}</span>
           </div>
-        ))}
+        )) : (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No notifications yet.</div>
+        )}
       </div>
     </div>
   );
+
+
+  const handleFeedbackSubmit = async () => {
+    if (!selectedComplaintId) { alert('Please select a ticket.'); return; }
+    if (feedbackRating === 0) { alert('Please select a star rating.'); return; }
+
+    setFeedbackSubmitting(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/feedback/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          complaint_id: selectedComplaintId,
+          customer_id: user?.id,
+          rating: feedbackRating,
+          feedback_text: feedbackText
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedbackSubmitted(true);
+        setFeedbackText('');
+      } else {
+        alert(`Error: ${data.error || 'Failed to submit feedback'}`);
+      }
+    } catch {
+      alert('Could not reach the server.');
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
 
   const renderFeedback = () => (
     <div className="card animate-fade-in">
@@ -442,41 +530,101 @@ const CustomerDashboard = () => {
           <MessageSquare size={24} className="brand-icon" /> Rate Final Resolution
         </h3>
       </div>
-      <div style={{ marginTop: '1rem', padding: '2rem', background: 'linear-gradient(145deg, var(--bg-secondary) 0%, rgba(37,99,235,0.02) 100%)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-        <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Rate your product resolution experience</h4>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Select a product/ticket to rate your final resolution experience:</p>
-        
-        <div style={{ marginBottom: '2rem' }}>
-           <select style={{ width: '100%', padding: '1rem 1.5rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', outline: 'none', fontSize: '0.95rem', color: 'var(--text-primary)', cursor: 'pointer', transition: 'border-color 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }} onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}>
-             <option value="">-- Select a resolved product issue --</option>
-             <option value="1">Smartphone X200 - Screen Issue (TKT-1040)</option>
-             <option value="2">Wireless Earbuds - Battery Drain (TKT-0921)</option>
-           </select>
-        </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', justifyContent: 'center' }}>
-          {[1,2,3,4,5].map(star => (
-            <button key={star} style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'transform 0.15s ease-out' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-              <Star size={40} color={star <= 4 ? "#fbbf24" : "var(--border-strong)"} fill={star <= 4 ? "#fbbf24" : "none"} />
-            </button>
-          ))}
+      {feedbackSubmitted ? (
+        <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+            <CheckCircle2 size={32} color="#10b981" />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Thank you for your feedback!</h3>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Your {feedbackRating}-star rating has been recorded successfully.</p>
+          <button onClick={() => { setFeedbackSubmitted(false); setFeedbackRating(0); setSelectedComplaintId(''); }} style={{ padding: '0.6rem 1.5rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>Rate Another Ticket</button>
         </div>
+      ) : (
+        <div style={{ marginTop: '1rem', padding: '2rem', background: 'linear-gradient(145deg, var(--bg-secondary) 0%, rgba(37,99,235,0.02) 100%)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+          <h4 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Rate your resolution experience</h4>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Once your complaint is resolved, you can rate the resolution here:</p>
 
-        <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Additional Comments</label>
-          <textarea
-            placeholder="Tell us what we did well, or what we can improve regarding this product..."
-            rows="4"
-            style={{ padding: '1rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', outline: 'none', transition: 'border-color 0.2s' }}
-            onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'} 
-            onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
-          />
+          <div style={{ marginBottom: '2rem' }}>
+            <select
+              value={selectedComplaintId}
+              onChange={e => setSelectedComplaintId(e.target.value)}
+              style={{ width: '100%', padding: '1rem 1.5rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', outline: 'none', fontSize: '0.95rem', color: selectedComplaintId ? 'var(--text-primary)' : 'var(--text-muted)', cursor: 'pointer', transition: 'border-color 0.2s' }}
+              onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
+            >
+              <option value="">-- Select a resolved ticket --</option>
+              {tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').map(t => (
+                <option key={t.id} value={t.id}>
+                  {t.subject || (t.complaint_text ? t.complaint_text.substring(0, 40) : 'Untitled')} ({t.category || 'General'})
+                </option>
+              ))}
+            </select>
+            {tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length === 0 && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Clock size={14} /> No resolved tickets yet. Feedback will be available once your complaints are resolved by our team.
+              </p>
+            )}
+          </div>
+
+          <div style={{ marginBottom: '2.5rem' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '0.75rem' }}>Your Rating</label>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              {[1,2,3,4,5].map(star => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setFeedbackRating(star)}
+                  onMouseEnter={() => setFeedbackHover(star)}
+                  onMouseLeave={() => setFeedbackHover(0)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', transition: 'transform 0.15s ease-out', padding: '4px' }}
+                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <Star
+                    size={40}
+                    color={star <= (feedbackHover || feedbackRating) ? '#fbbf24' : 'var(--border-strong)'}
+                    fill={star <= (feedbackHover || feedbackRating) ? '#fbbf24' : 'none'}
+                  />
+                </button>
+              ))}
+            </div>
+            {feedbackRating > 0 && (
+              <p style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                {feedbackRating === 1 ? 'Poor' : feedbackRating === 2 ? 'Fair' : feedbackRating === 3 ? 'Good' : feedbackRating === 4 ? 'Very Good' : 'Excellent!'}
+              </p>
+            )}
+          </div>
+
+          <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Additional Comments (Optional)</label>
+            <textarea
+              placeholder="Tell us what we did well, or what we can improve..."
+              rows="4"
+              value={feedbackText}
+              onChange={e => setFeedbackText(e.target.value)}
+              style={{ padding: '1rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', outline: 'none', transition: 'border-color 0.2s', resize: 'vertical' }}
+              onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
+              onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
+            />
+          </div>
+
+          <button
+            onClick={handleFeedbackSubmit}
+            disabled={feedbackSubmitting || !selectedComplaintId || feedbackRating === 0}
+            style={{
+              padding: '0.85rem 2rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px',
+              border: 'none', background: (!selectedComplaintId || feedbackRating === 0) ? 'var(--border-strong)' : 'var(--brand-primary)',
+              color: 'white', fontWeight: 600, cursor: (!selectedComplaintId || feedbackRating === 0) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(37,99,235,0.2)', opacity: feedbackSubmitting ? 0.7 : 1
+            }}
+            onMouseOver={e => { if (selectedComplaintId && feedbackRating > 0) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            {feedbackSubmitting ? <><Loader2 size={16} className="animate-spin" /> Submitting...</> : <><Send size={16} /> Submit Feedback</>}
+          </button>
         </div>
-
-        <button className="btn btn-primary" style={{ padding: '0.85rem 2rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', border: 'none', background: 'var(--brand-primary)', color: 'white', fontWeight: 600, cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <Send size={16} /> Submit Feedback
-        </button>
-      </div>
+      )}
     </div>
   );
 
@@ -486,19 +634,19 @@ const CustomerDashboard = () => {
         <div className="col-span-4 card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(37,99,235,0.05) 100%)', borderLeft: '4px solid var(--brand-primary)' }}>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Active Tickets</div>
           <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            {mockTickets.filter(t => t.progress < 100).length} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400 }}>Currently open</span>
+            {tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400 }}>Currently open</span>
           </div>
         </div>
         <div className="col-span-4 card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(16,185,129,0.05) 100%)', borderLeft: '4px solid #10b981' }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Resolved This Month</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Resolved</div>
           <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            12 <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600 }}>+2 from last month</span>
+            {tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length} <span style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600 }}>Completed</span>
           </div>
         </div>
         <div className="col-span-4 card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(245,158,11,0.05) 100%)', borderLeft: '4px solid #f59e0b' }}>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Average Resolution Time</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '0.5rem' }}>Total Complaints</div>
           <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            1.2 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400 }}>Days</span>
+            {tickets.length} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400 }}>All time</span>
           </div>
         </div>
       </div>
@@ -515,17 +663,18 @@ const CustomerDashboard = () => {
               </h3>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {mockTickets.slice(0, 2).map(ticket => (
-                <div key={ticket.id} style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+              {tickets.slice(0, 3).map((ticket, i) => (
+                <div key={ticket.id || i} style={{ padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{ticket.title}</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{ticket.subject || ticket.complaint_text?.substring(0, 30)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{ticket.status}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{ticket.date}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{ticket.status || 'Open'}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'N/A'}</span>
                   </div>
                 </div>
               ))}
+              {tickets.length === 0 && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>No activity yet</div>}
             </div>
           </div>
           

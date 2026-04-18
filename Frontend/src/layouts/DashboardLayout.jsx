@@ -100,11 +100,6 @@ const DashboardLayout = ({ children }) => {
           path: '/resolution-review',
           label: 'Resolution Review',
           icon: FileBarChart2
-        },
-        {
-          path: '/trends',
-          label: 'Trends',
-          icon: TrendingUp
         }
       ];
     }
