@@ -27,6 +27,21 @@ def create_user_table():
     cur.close()
     conn.close()
 
+def check_email_exists(email):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id FROM users WHERE email = %s
+    """, (email,))
+
+    exists = cur.fetchone() is not None
+
+    cur.close()
+    conn.close()
+
+    return exists
+
 
 def insert_user(full_name, email, password_hash, role, phone, is_verified):
     conn = get_connection()
