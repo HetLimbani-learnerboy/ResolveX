@@ -57,14 +57,14 @@ const QADashboard = () => {
               <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorBugs" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--brand-accent)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--brand-accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}
                   itemStyle={{ fontSize: '14px' }}
                 />
