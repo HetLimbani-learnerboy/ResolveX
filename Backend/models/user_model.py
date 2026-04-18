@@ -31,16 +31,19 @@ def check_email_exists(email):
     conn = get_connection()
     cur = conn.cursor()
 
+    # We select specific columns to ensure we know exactly which index is which
     cur.execute("""
-        SELECT id FROM users WHERE email = %s
+        SELECT id, full_name, email, password_hash, role, phone, is_active, is_verified 
+        FROM users 
+        WHERE email = %s
     """, (email,))
 
-    exists = cur.fetchone() is not None
+    user = cur.fetchone()
 
     cur.close()
     conn.close()
 
-    return exists
+    return user # This now returns the tuple (row) or None
 
 
 def insert_user(full_name, email, password_hash, role, phone, is_verified):
