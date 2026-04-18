@@ -89,6 +89,7 @@ const SupportDashboard = () => {
   // Drawer actions
   const [updatingStatus,  setUpdatingStatus]  = useState(false);
   const [escalating,      setEscalating]      = useState(false);
+  const [followingAi,     setFollowingAi]     = useState(false);
   const [actionMsg,       setActionMsg]       = useState('');
 
   // ── Data fetching ─────────────────────────────────────────────────────────
@@ -188,6 +189,30 @@ const SupportDashboard = () => {
     }
   };
 
+  // ── Follow AI Suggested Resolution ────────────────────────────────────────
+  const handleFollowAi = async () => {
+    if (!selectedTicket || followingAi) return;
+    setFollowingAi(true);
+    setActionMsg('');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/complaints/update-status/${selectedTicket.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'In Progress' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to follow AI');
+      setTickets(prev => prev.map(t =>
+        t.id === selectedTicket.id ? { ...t, status: data.status || 'In Progress', progress: data.progress || 50 } : t
+      ));
+      setActionMsg('✅ AI resolution accepted! Ticket moved to "In Progress".');
+    } catch (err) {
+      setActionMsg(`❌ ${err.message}`);
+    } finally {
+      setFollowingAi(false);
+    }
+  };
+
   // ── Filtered view ─────────────────────────────────────────────────────────
   const filteredTickets = tickets.filter(t => {
     const matchSearch   = !searchQuery || [t.subject, t.category, t.complaint_text].some(
@@ -225,19 +250,32 @@ const SupportDashboard = () => {
       {/* ══════════════════════════════════════════════════════
           STATS ROW
       ══════════════════════════════════════════════════════ */}
-      <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', marginBottom: '0.5rem' }}>
+      <div className="col-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.25rem', marginBottom: '1rem' }}>
         {[
-          { label: 'Total Complaints', value: stats.total,    icon: <BarChartIcon size={18}/>, accent: 'var(--brand-primary)' },
-          { label: 'Critical',          value: stats.critical, icon: <AlertTriangle size={18}/>, accent: '#ef4444' },
-          { label: 'Active',            value: stats.open,     icon: <TrendingUp size={18}/>,   accent: '#fbbf24' },
-          { label: 'Resolved',          value: stats.resolved, icon: <CheckCircle2 size={18}/>, accent: '#34d399' },
+          { label: 'Total Complaints', value: stats.total,    icon: <BarChartIcon size={22}/>, accent: 'var(--brand-primary)', bg: 'rgba(37,99,235,0.05)' },
+          { label: 'Critical',          value: stats.critical, icon: <AlertTriangle size={22}/>, accent: '#ef4444', bg: 'rgba(239,68,68,0.05)' },
+          { label: 'Active',            value: stats.open,     icon: <TrendingUp size={22}/>,   accent: '#fbbf24', bg: 'rgba(251,191,36,0.05)' },
+          { label: 'Resolved',          value: stats.resolved, icon: <CheckCircle2 size={22}/>, accent: '#34d399', bg: 'rgba(52,211,153,0.05)' },
         ].map(s => (
-          <div key={s.label} className="card" style={{ padding: '1.25rem', borderLeft: `4px solid ${s.accent}`, background: 'var(--bg-card)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</span>
-              <span style={{ color: s.accent, opacity: 0.8 }}>{s.icon}</span>
+          <div key={s.label} className="card" style={{ 
+            padding: '1.5rem', 
+            background: `linear-gradient(145deg, var(--bg-card) 0%, ${s.bg} 100%)`,
+            border: '1px solid var(--border-subtle)',
+            borderBottom: `3px solid ${s.accent}`,
+            borderRadius: '16px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            cursor: 'default'
+          }}
+          onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = `0 10px 25px ${s.bg.replace('0.05', '0.2')}`; }}
+          onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.04)'; }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</span>
+              <div style={{ background: s.bg.replace('0.05', '0.15'), padding: '8px', borderRadius: '10px', color: s.accent, display: 'flex' }}>
+                {s.icon}
+              </div>
             </div>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{s.value}</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -246,39 +284,53 @@ const SupportDashboard = () => {
           AI INPUT PANEL
       ══════════════════════════════════════════════════════ */}
       <div className="col-span-12">
-        <div className="card" style={{ background: 'linear-gradient(145deg, rgba(30,30,40,0.8) 0%, rgba(20,20,30,1) 100%)', border: '1px solid var(--brand-accent)' }}>
-          <div className="card-header">
-            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} color="var(--brand-accent)" />
+        <div className="card" style={{ 
+          background: 'linear-gradient(135deg, rgba(30,30,42,0.9) 0%, rgba(15,15,22,1) 100%)', 
+          border: '1px solid rgba(129, 140, 248, 0.3)',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* subtle background glow */}
+          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(129,140,248,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+          <div className="card-header" style={{ borderBottomColor: 'rgba(255,255,255,0.05)' }}>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff', fontSize: '1.1rem' }}>
+              <div style={{ padding: '6px', background: 'rgba(129,140,248,0.15)', borderRadius: '8px', display: 'flex' }}>
+                <Sparkles size={18} color="#818cf8" />
+              </div>
               Live AI Complaint Classification
             </h3>
             <button onClick={() => fetchTickets(true)} disabled={refreshing}
-              style={{ background: 'transparent', border: '1px solid var(--border-subtle)', color: 'var(--text-muted)', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} /> Refresh
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', transition: 'all 0.2s' }}
+              onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}>
+              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
             </button>
           </div>
 
-          <div style={{ padding: '0 1.5rem 1.5rem' }}>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-              Paste a customer complaint from any channel. The AI pipeline classifies, prioritises, and saves it to the database automatically.
+          <div style={{ padding: '1.5rem', position: 'relative', zIndex: 1 }}>
+            <p style={{ color: '#aaa', marginBottom: '1.25rem', fontSize: '0.95rem' }}>
+              Paste a customer complaint from any channel. ResolveX Copilot will instantly classify, prioritize, and ingest it into the platform.
             </p>
 
             {/* Channel selector */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
               {['Email', 'Call', 'Chat'].map(ch => (
                 <button key={ch} onClick={() => setChannel(ch)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
-                    background: channel === ch ? 'var(--brand-primary)' : 'transparent',
-                    color:      channel === ch ? '#fff' : 'var(--text-secondary)',
-                    border:     channel === ch ? '1px solid var(--brand-primary)' : '1px solid var(--border-subtle)',
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                    background: channel === ch ? 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' : 'rgba(255,255,255,0.03)',
+                    color:      channel === ch ? '#fff' : '#888',
+                    border:     channel === ch ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                    boxShadow:  channel === ch ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
                   }}>
-                  <ChannelIcon channel={ch} size={14} /> {ch}
+                  <ChannelIcon channel={ch} size={15} /> {ch}
                 </button>
               ))}
             </div>
 
             {/* Textarea + button */}
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexDirection: 'column' }}>
               <textarea
                 placeholder={
                   channel === 'Email' ? 'Paste the full email body here…\n\ne.g., "Dear Support, I received my order #4521 and the box was completely crushed…"'
@@ -288,14 +340,15 @@ const SupportDashboard = () => {
                 value={complaintText}
                 onChange={e => setComplaintText(e.target.value)}
                 rows={4}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)', color: 'var(--text-primary)', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: '1.5', outline: 'none' }}
-                onFocus={e  => e.target.style.borderColor = 'var(--brand-primary)'}
-                onBlur={e   => e.target.style.borderColor = 'var(--border-subtle)'}
+                style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', transition: 'border-color 0.3s, box-shadow 0.3s' }}
+                onFocus={e  => { e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.15)'; }}
+                onBlur={e   => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }}
               />
               <button onClick={handleClassifyAI} disabled={isAiLoading || !complaintText.trim()}
-                className="btn btn-primary glow-btn"
-                style={{ height: 'fit-content', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', opacity: (!complaintText.trim() || isAiLoading) ? 0.6 : 1 }}>
-                {isAiLoading ? <><Loader2 size={15} className="animate-spin" /> Analysing…</> : <><PlayCircle size={15} /> Run AI Analysis</>}
+                style={{ alignSelf: 'flex-end', padding: '0.8rem 1.5rem', borderRadius: '10px', background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', color: 'white', border: 'none', fontWeight: 600, fontSize: '0.95rem', cursor: (!complaintText.trim() || isAiLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: (!complaintText.trim() || isAiLoading) ? 0.6 : 1, transition: 'all 0.2s', boxShadow: (!complaintText.trim() || isAiLoading) ? 'none' : '0 6px 15px rgba(79, 70, 229, 0.4)' }}
+                onMouseOver={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(79, 70, 229, 0.5)'; } }}
+                onMouseOut={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(79, 70, 229, 0.4)'; } }}>
+                {isAiLoading ? <><Loader2 size={18} className="animate-spin" /> Processing AI…</> : <><Sparkles size={18} /> Ingest via ResolveX Copilot</>}
               </button>
             </div>
 
@@ -359,17 +412,21 @@ const SupportDashboard = () => {
             </h3>
 
             {/* Search + filters */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto', flexWrap: 'wrap' }}>
               <div style={{ position: 'relative' }}>
-                <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input placeholder="Search…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  style={{ padding: '6px 10px 6px 28px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.8rem', outline: 'none', width: '160px' }} />
+                <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
+                <input placeholder="Search tickets…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  style={{ padding: '8px 12px 8px 34px', border: '1px solid var(--border-subtle)', borderRadius: '10px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none', width: '200px', transition: 'border-color 0.2s, box-shadow 0.2s' }} 
+                  onFocus={e => { e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border-subtle)'; e.target.style.boxShadow = 'none'; }}
+                />
               </div>
 
               {/* Priority filter */}
               <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
-                style={{ padding: '6px 10px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}>
-                <option value="All">All Priority</option>
+                style={{ padding: '8px 12px', border: '1px solid var(--border-subtle)', borderRadius: '10px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s', fontWeight: 500 }}
+                onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}>
+                <option value="All">Priority: All</option>
                 {Object.keys(PRIORITY_META).filter(p => p !== 'None').map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
@@ -377,19 +434,20 @@ const SupportDashboard = () => {
 
               {/* Status filter */}
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                style={{ padding: '6px 10px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}>
-                <option value="All">All Status</option>
+                style={{ padding: '8px 12px', border: '1px solid var(--border-subtle)', borderRadius: '10px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s', fontWeight: 500 }}
+                onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'} onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}>
+                <option value="All">Status: All</option>
                 {VALID_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
 
-          <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-wrapper" style={{ overflowX: 'auto', padding: '0.5rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
               <thead>
                 <tr>
-                  {['Ticket ID', 'Channel', 'Subject', 'Category (AI)', 'Priority (AI)', 'Status', 'AI Recommendation'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '0.85rem 1rem', borderBottom: '2px solid var(--border-subtle)', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
+                  {['Ticket ID', 'Channel', 'Subject', 'Category (AI)', 'Priority', 'Status', 'Copilot Action'].map(h => (
+                    <th key={h} style={{ textAlign: 'left', padding: '0.5rem 1rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-subtle)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -411,12 +469,12 @@ const SupportDashboard = () => {
                 ) : (
                   filteredTickets.map((ticket, i) => (
                     <tr key={ticket.id} onClick={() => { setSelectedTicket(ticket); setActionMsg(''); }}
-                      style={{ cursor: 'pointer', borderBottom: i === filteredTickets.length - 1 ? 'none' : '1px solid var(--border-subtle)', transition: 'background 0.15s' }}
-                      onMouseOver={e  => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                      onMouseOut={e   => e.currentTarget.style.background = 'transparent'}>
+                      style={{ cursor: 'pointer', background: 'var(--bg-primary)', transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', borderRadius: '12px' }}
+                      onMouseOver={e  => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.06)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+                      onMouseOut={e   => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)'; e.currentTarget.style.background = 'var(--bg-primary)'; }}>
 
                       {/* Ticket ID */}
-                      <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-primary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700, color: 'var(--brand-primary)', whiteSpace: 'nowrap', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px', border: '1px solid var(--border-subtle)', borderRight: 'none' }}>
                         #{shortId(ticket.id)}
                       </td>
 
@@ -459,8 +517,9 @@ const SupportDashboard = () => {
                       </td>
 
                       {/* AI Recommendation */}
-                      <td style={{ padding: '0.85rem 1rem', maxWidth: '220px' }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      <td style={{ padding: '1rem', maxWidth: '220px', borderTopRightRadius: '12px', borderBottomRightRadius: '12px', border: '1px solid var(--border-subtle)', borderLeft: 'none' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                          <Zap size={14} color="#fbbf24" style={{ flexShrink: 0, marginTop: '2px' }} />
                           {ticket.recommended_action || '—'}
                         </span>
                       </td>
@@ -481,34 +540,39 @@ const SupportDashboard = () => {
           {/* Overlay */}
           <div
             onClick={() => { setSelectedTicket(null); setActionMsg(''); }}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9998 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9998, animation: 'fadeIn 0.3s ease-out' }}
           />
 
           {/* Drawer panel */}
           <div style={{
-            position: 'fixed', top: 0, right: 0, height: '100vh', width: '460px',
-            background: 'var(--bg-card)', borderLeft: '1px solid var(--border-strong)',
-            boxShadow: '-12px 0 40px rgba(0,0,0,0.3)', zIndex: 9999,
+            position: 'fixed', top: 0, right: 0, height: '100vh', width: '500px', maxWidth: '90vw',
+            background: 'var(--bg-card)', borderLeft: '1px solid rgba(255,255,255,0.05)',
+            boxShadow: '-20px 0 50px rgba(0,0,0,0.5)', zIndex: 9999,
             display: 'flex', flexDirection: 'column', overflowY: 'auto',
+            animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}>
             {/* Drawer header */}
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'var(--bg-card)', zIndex: 1 }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '1rem' }}>
-                <Sparkles size={16} color="var(--brand-accent)" />
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'rgba(var(--bg-card-rgb), 0.95)', backdropFilter: 'blur(10px)', zIndex: 10 }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                <div style={{ padding: '6px', background: 'rgba(99,102,241,0.1)', borderRadius: '8px', display: 'flex' }}>
+                  <Sparkles size={18} color="var(--brand-primary)" />
+                </div>
                 Ticket #{shortId(selectedTicket.id)}
               </h3>
               <button onClick={() => { setSelectedTicket(null); setActionMsg(''); }}
-                style={{ background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '50%', color: 'var(--text-secondary)', display: 'flex' }}>
+                style={{ background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', color: 'var(--text-secondary)', display: 'flex', transition: 'all 0.2s' }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
                 <X size={18} />
               </button>
             </div>
 
             {/* Drawer body */}
-            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1 }}>
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
 
               {/* Title + badges */}
-              <div>
-                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+              <div style={{ background: 'linear-gradient(145deg, var(--bg-secondary) 0%, rgba(30,30,40,0) 100%)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
                   {selectedTicket.subject || '—'}
                 </h4>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -555,6 +619,23 @@ const SupportDashboard = () => {
                   <strong style={{ color: '#fbbf24' }}>Copilot: </strong>
                   {selectedTicket.recommended_action || 'No recommendation available.'}
                 </div>
+
+                {/* Follow AI Resolution Button */}
+                {selectedTicket.recommended_action && selectedTicket.status === 'Open' && (
+                  <button onClick={handleFollowAi} disabled={followingAi}
+                    style={{ width: '100%', marginTop: '0.75rem', padding: '0.75rem', borderRadius: '10px', border: '2px solid rgba(129,140,248,0.5)', background: 'linear-gradient(135deg, rgba(129,140,248,0.08) 0%, rgba(99,102,241,0.12) 100%)', color: '#818cf8', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(99,102,241,0.2) 100%)'; e.currentTarget.style.borderColor = '#818cf8'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(129,140,248,0.08) 0%, rgba(99,102,241,0.12) 100%)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.5)'; }}>
+                    {followingAi
+                      ? <><Loader2 size={15} className="animate-spin" /> Applying…</>
+                      : <><Sparkles size={15} /> Follow AI Resolution</>}
+                  </button>
+                )}
+                {selectedTicket.status !== 'Open' && selectedTicket.status !== 'Escalated' && (
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <CheckCircle2 size={12} /> AI recommendation acknowledged — ticket is {selectedTicket.status}.
+                  </div>
+                )}
               </Section>
 
               {/* Original complaint text */}

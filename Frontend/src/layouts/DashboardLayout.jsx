@@ -15,7 +15,9 @@ import {
   TrendingUp,
   MessageSquareText,
   MessageSquare,
-  FileBarChart2
+  FileBarChart2,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 import '../styles/DashboardLayout.css';
@@ -100,6 +102,19 @@ const DashboardLayout = ({ children }) => {
           path: '/resolution-review',
           label: 'Resolution Review',
           icon: FileBarChart2
+        }
+      ];
+    }
+
+    /* =====================================
+       SUPPORT EXECUTIVE
+    ===================================== */
+    else if (role === 'executive' || role === 'support') {
+      items = [
+        {
+          path: '/dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard
         }
       ];
     }
