@@ -32,12 +32,6 @@ try:
 except ImportError:
     has_complaint = False
 
-try:
-    from routes.feedback_routes import feedback_bp
-    has_feedback = True
-except ImportError:
-    has_feedback = False
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -63,8 +57,6 @@ if has_chat:
     app.register_blueprint(chat_bp, url_prefix="/api/chat")
 if has_complaint:
     app.register_blueprint(complaint_bp, url_prefix="/api/complaints")
-if has_feedback:
-    app.register_blueprint(feedback_bp, url_prefix="/api/feedback")
 
 
 @app.route("/")
