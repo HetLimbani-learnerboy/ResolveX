@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle, Mail, Phone, MessageSquare } from 'lucide-react';
+import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle, Mail, Phone, MessageSquare, Clock } from 'lucide-react';
 
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,14 +37,16 @@ const SupportDashboard = () => {
       
       const newTicket = {
         id: `TKT-${Math.floor(Math.random() * 1000) + 2000}`,
-        customer: 'Live Insight',
         channel: channel,
-        title: data.original_text.substring(0, 40) + (data.original_text.length > 40 ? '...' : ''),
+        title: data.summary || data.original_text.substring(0, 40) + '...',
+        originalText: data.original_text,
+        cleanedText: data.cleaned_text,
         category: data.category || 'Unknown',
         priority: data.priority || 'Medium',
         status: 'Pending',
         aiAction: data.recommendation || 'Escalate to QA',
-        sentiment: data.sentiment_score
+        sentiment: data.sentiment_score,
+        timestamp: data.timestamp || new Date().toLocaleString()
       };
       
       setLiveTicket(newTicket);
@@ -156,7 +158,14 @@ const SupportDashboard = () => {
                         {ticket.channel === 'Chat' && <MessageSquare size={13} />}
                         {ticket.channel || '—'}
                       </td>
-                      <td>{ticket.title}</td>
+                      <td>
+                        <div style={{ fontWeight: 500 }}>{ticket.title}</div>
+                        {ticket.timestamp && (
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={10} /> {ticket.timestamp}
+                          </div>
+                        )}
+                      </td>
                       <td>{ticket.category}</td>
                       <td><span className={`badge ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></td>
                       <td style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
@@ -184,26 +193,55 @@ const SupportDashboard = () => {
               <button className="icon-btn" onClick={() => setSelectedTicket(null)}><X size={20} /></button>
             </div>
             <div className="drawer-content">
+              {/* Header */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{selectedTicket.title}</h4>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Customer: {selectedTicket.customer}</div>
+                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>{selectedTicket.title}</h4>
+                {selectedTicket.timestamp && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.5rem' }}>
+                    <Clock size={13} /> {selectedTicket.timestamp}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span className={`badge ${selectedTicket.priority.toLowerCase()}`}>{selectedTicket.priority} Priority</span>
+                  <span className="badge" style={{ background: 'rgba(100,100,255,0.15)', color: '#8b8bff' }}>{selectedTicket.category}</span>
+                  {selectedTicket.channel && <span className="badge" style={{ background: 'rgba(100,200,100,0.15)', color: '#7cc77c' }}>{selectedTicket.channel}</span>}
+                </div>
+              </div>
+
+              {/* Original Complaint Text */}
+              {selectedTicket.originalText && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Original Complaint</div>
+                  <div style={{ padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.85rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto' }}>
+                    {selectedTicket.originalText}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Metrics Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '4px' }}>Sentiment Score</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 600, color: selectedTicket.sentiment < -0.3 ? '#ff6b6b' : selectedTicket.sentiment > 0.2 ? '#51cf66' : '#ffd43b' }}>
+                    {selectedTicket.sentiment !== undefined ? selectedTicket.sentiment : 'N/A'}
+                  </div>
+                </div>
+                <div style={{ padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '4px' }}>Cleaned Text</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', maxHeight: '40px', overflow: 'hidden' }}>
+                    {selectedTicket.cleanedText || 'N/A'}
+                  </div>
+                </div>
               </div>
               
+              {/* AI Analysis */}
               <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
-                  <AlertCircle size={14} /> AI Analysis Log
+                  <Sparkles size={14} /> AI Recommendation
                 </div>
                 <div className="ai-chat-bubble">
-                  <strong>Copilot:</strong> I've scanned the logs. The server downtime appears to be due to an out-of-memory exception on Node B. 
+                  <strong>Copilot:</strong> {selectedTicket.aiAction}
                 </div>
-                <div className="ai-chat-bubble">
-                  <strong>Copilot:</strong> Suggested action: {selectedTicket.aiAction}
-                </div>
-                {selectedTicket.sentiment !== undefined && (
-                   <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--brand-accent)' }}>
-                     * Model Sentiment Score: {selectedTicket.sentiment}
-                   </div>
-                )}
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '2rem', display: 'flex', gap: '1rem' }}>

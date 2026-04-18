@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import os
 import json
+from datetime import datetime
 import joblib
 import numpy as np
 from scipy.sparse import hstack
@@ -154,6 +155,31 @@ Respond ONLY with valid JSON, no extra text:
         return None
 
 # ============================================================
+# MODULE 5: LLM-Powered Summary Generator
+# ============================================================
+def llm_generate_summary(text, model):
+    """
+    Uses the LLM to generate a short 1-line summary of the complaint.
+    This summary is displayed under the Issue Title in the dashboard.
+    """
+    try:
+        prompt = f"""Summarize the following customer complaint in exactly 1 short sentence (max 12 words). 
+Capture the core issue only. No greetings, no fluff.
+
+Complaint:
+---
+{text}
+---
+
+Respond with ONLY the summary sentence, nothing else."""
+
+        response = model.generate_content(prompt)
+        return response.text.strip().strip('"')
+    except Exception as e:
+        print(f"LLM Summary Error: {e}")
+        return text[:60] + "..."
+
+# ============================================================
 # MODULE 4: Recommendation Engine (UNTOUCHED — kept as is)
 # ============================================================
 def get_llm_recommendation(text, category, priority, sentiment):
@@ -229,6 +255,7 @@ def process_complaint():
         if not is_valid:
             category = "Wrong Complain"
             priority = "None"
+            summary = "Invalid or spam complaint detected."
             recommendation = "Auto-action: Discard invalid or spam complaint."
         else:
             # Module 2: Category Classification via LLM
@@ -241,6 +268,9 @@ def process_complaint():
             if not priority:
                 priority = "Medium"
             
+            # Module 5: Summary Generator via LLM
+            summary = llm_generate_summary(text, gemini)
+            
             # Module 4: Recommendation Engine (UNTOUCHED)
             recommendation = get_llm_recommendation(text, category, priority, sentiment)
     else:
@@ -252,6 +282,7 @@ def process_complaint():
         
         category, priority = ml_fallback_classify(cleaned_text, sentiment)
         
+        summary = cleaned_text[:60] + "..."
         if category == "Wrong Complain":
             recommendation = "Auto-action: Discard invalid or spam complaint."
         else:
@@ -264,6 +295,8 @@ def process_complaint():
         "category": category,
         "priority": priority,
         "channel": channel,
-        "recommendation": recommendation
+        "summary": summary,
+        "recommendation": recommendation,
+        "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
     })
 
