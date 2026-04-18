@@ -16,6 +16,8 @@ from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
 from routes.ai_routes import ai_bp
 from routes.admin_routes import admin_bp
+from routes.feedback_routes import feedback_bp
+from routes.customerse_api import customerse_api
 
 # Import additional routes if they exist
 try:
@@ -48,6 +50,8 @@ app.register_blueprint(user_bp, url_prefix="/api/users")
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(login_bp, url_prefix="/api/auth")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
+app.register_blueprint(feedback_bp, url_prefix="/api/feedback")
+app.register_blueprint(customerse_api, url_prefix="/api/customerse")
 
 if has_chat:
     app.register_blueprint(chat_bp, url_prefix="/api/chat")
