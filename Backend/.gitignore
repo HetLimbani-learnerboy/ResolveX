@@ -1,1 +1,3 @@
 .env
+
+ml/trained_models/priority_classifier.pkl
