@@ -31,11 +31,8 @@ except Exception as e:
     print(f"Warning: Could not connect to Database on startup. Ensure PostgreSQL is running. Error: {e}")
 
 app.register_blueprint(user_bp, url_prefix="/api/users")
-<<<<<<< HEAD
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
-=======
 app.register_blueprint(login_bp, url_prefix="/api/auth")
->>>>>>> f929aa9d3139391eac6d726752d1503d752ec600
 
 
 @app.route("/")

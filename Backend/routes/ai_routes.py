@@ -74,17 +74,24 @@ def process_complaint():
     # 2. Extract Features
     X_tfidf = tfidf.transform([cleaned_text])
     
-    # 3. Predict Category
-    cat_pred_idx = cat_model.predict(X_tfidf)[0]
-    category = cat_enc.inverse_transform([cat_pred_idx])[0]
-    
-    # 4. Predict Priority
-    X_combined = hstack([X_tfidf, [[sentiment]]])
-    prio_pred_idx = prio_model.predict(X_combined)[0]
-    priority = prio_enc.inverse_transform([prio_pred_idx])[0]
-    
-    # 5. Get Recommendation String
-    recommendation = get_llm_recommendation(text, category, priority, sentiment)
+    # 3. Fraud Detection (Zero-Vector / Gibberish Check)
+    if X_tfidf.nnz == 0:
+        # If no recognized words, bypass regular ML models
+        category = "Wrong Complain"
+        priority = "None"
+        recommendation = "Auto-action: Discard invalid or spam complaint."
+    else:
+        # 4. Predict Category
+        cat_pred_idx = cat_model.predict(X_tfidf)[0]
+        category = cat_enc.inverse_transform([cat_pred_idx])[0]
+        
+        # 5. Predict Priority
+        X_combined = hstack([X_tfidf, [[sentiment]]])
+        prio_pred_idx = prio_model.predict(X_combined)[0]
+        priority = prio_enc.inverse_transform([prio_pred_idx])[0]
+        
+        # 6. Get Recommendation String
+        recommendation = get_llm_recommendation(text, category, priority, sentiment)
     
     return jsonify({
         "original_text": text,

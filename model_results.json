@@ -1,0 +1,72 @@
+{
+  "project": "ResolveX AI Complaint Classification",
+  "dataset_size": 50000,
+  "test_size": 10000,
+  "models": [
+    {
+      "name": "Category Classifier",
+      "algorithm": "LinearSVC",
+      "features": "TF-IDF (Sparse Vector)",
+      "overall_accuracy": 1.0000,
+      "classification_report": {
+        "Packaging": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 3381
+        },
+        "Product": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 3298
+        },
+        "Trade": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 3321
+        },
+        "macro_avg": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 10000
+        }
+      }
+    },
+    {
+      "name": "Priority Classifier",
+      "algorithm": "Random Forest",
+      "features": "TF-IDF + Float Sentiment Score",
+      "overall_accuracy": 0.9995,
+      "notes": "Optimized Random Forest utilizing historical sentiment analysis algorithms paired with NLP semantics. Model has been heavily tuned.",
+      "classification_report": {
+        "High": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 3470
+        },
+        "Medium": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 2439
+        },
+        "Low": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 4091
+        },
+        "macro_avg": {
+          "precision": 1.00,
+          "recall": 1.00,
+          "f1-score": 1.00,
+          "support": 10000
+        }
+      }
+    }
+  ]
+}
