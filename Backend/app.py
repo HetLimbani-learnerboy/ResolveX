@@ -15,6 +15,7 @@ from models.feedback_model import create_feedback_table
 from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
 from routes.ai_routes import ai_bp
+from routes.admin_routes import admin_bp
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ except Exception as e:
 app.register_blueprint(user_bp, url_prefix="/api/users")
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(login_bp, url_prefix="/api/auth")
+app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
 
 @app.route("/")

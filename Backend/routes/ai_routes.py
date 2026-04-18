@@ -8,6 +8,7 @@ from scipy.sparse import hstack
 from ml.preprocessing import TextPreprocessor
 import google.generativeai as genai
 from dotenv import load_dotenv
+from routes.admin_routes import complaint_history
 
 load_dotenv()
 
@@ -288,7 +289,7 @@ def process_complaint():
         else:
             recommendation = f"Auto-action: Escalate to {category} operations team."
     
-    return jsonify({
+    result = {
         "original_text": text,
         "cleaned_text": cleaned_text,
         "sentiment_score": round(sentiment, 2),
@@ -298,5 +299,11 @@ def process_complaint():
         "summary": summary,
         "recommendation": recommendation,
         "timestamp": datetime.now().strftime("%d %b %Y, %I:%M %p")
-    })
+    }
+    
+    # Push to shared complaint history for admin panel reports & exports
+    result["id"] = f"TKT-{len(complaint_history) + 1001}"
+    complaint_history.append(result)
+    
+    return jsonify(result)
 

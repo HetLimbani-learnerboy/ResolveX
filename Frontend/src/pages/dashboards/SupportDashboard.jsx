@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle, Mail, Phone, MessageSquare, Clock } from 'lucide-react';
+import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle, Mail, Phone, MessageSquare, Clock, BarChart as BarChartIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +60,13 @@ const SupportDashboard = () => {
       setIsAiLoading(false);
     }
   };
+
+  const removeTicket = (id) => {
+    setTickets(prev => prev.filter(t => t.id !== id));
+    setSelectedTicket(null);
+  };
+
+  const COLORS = ['#8b8bff', '#51cf66', '#ffd43b', '#ff6b6b', '#cc5de8', '#20c997', '#ff922b'];
 
   return (
     <div className="dashboard-grid relative">
@@ -121,8 +129,71 @@ const SupportDashboard = () => {
         </div>
       </div>
 
-      <div className="col-span-12">
-        <div className="card">
+      {/* Real-time Category Bar Trend */}
+      <div className="col-span-4">
+        <div className="card" style={{ height: '100%' }}>
+          <div className="card-header">
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChartIcon size={18} /> 
+              Category-wise Trend
+            </h3>
+            <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(50,200,50,0.2)', color: '#51cf66', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '6px', height: '6px', background: '#51cf66', borderRadius: '50%' }}></span> LIVE
+            </span>
+          </div>
+          <div style={{ padding: '0 1.5rem 1.5rem', height: '300px' }}>
+            {tickets.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={Object.entries(
+                    tickets.reduce((acc, t) => {
+                      acc[t.category] = (acc[t.category] || 0) + 1;
+                      return acc;
+                    }, {})
+                  ).map(([name, count]) => ({ name, count }))} 
+                  margin={{ top: 20, right: 0, left: -20, bottom: 25 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="var(--text-muted)" 
+                    fontSize={11} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    angle={-45} 
+                    textAnchor="end"
+                    interval={0}
+                  />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: '8px' }}
+                    itemStyle={{ color: 'var(--brand-primary)', fontWeight: 'bold' }}
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]} animationDuration={500}>
+                    {
+                      Object.entries(
+                        tickets.reduce((acc, t) => {
+                          acc[t.category] = (acc[t.category] || 0) + 1;
+                          return acc;
+                        }, {})
+                      ).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))
+                    }
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+                No active complaints
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-8">
+        <div className="card" style={{ height: '100%' }}>
           <div className="card-header">
             <h3 className="card-title">Assigned Tickets</h3>
             <span className="badge high">Requires Immediate Action: 1</span>
@@ -245,10 +316,10 @@ const SupportDashboard = () => {
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '2rem', display: 'flex', gap: '1rem' }}>
-                <button className="btn btn-primary glow-btn" style={{ flex: 1 }} onClick={() => setSelectedTicket(null)}>
-                  Execute AI Action
+                <button className="btn btn-primary glow-btn" style={{ flex: 1 }} onClick={() => removeTicket(selectedTicket.id)}>
+                  Execute AI Action (Resolve)
                 </button>
-                <button className="btn btn-secondary" onClick={() => setSelectedTicket(null)}>Escalate</button>
+                <button className="btn btn-secondary" onClick={() => removeTicket(selectedTicket.id)}>Discard / Delete</button>
               </div>
             </div>
           </div>

@@ -29,7 +29,10 @@ def login():
 
     # 1. Fetch user data
     # Expected SELECT: id, full_name, email, password_hash, role, phone, is_active, is_verified
-    user = check_email_exists(email)
+    try:
+        user = check_email_exists(email)
+    except Exception as e:
+        return jsonify({"message": f"Database Connection Error: {str(e)}"}), 503
 
     # 2. Check if user exists (user is a tuple if found, None if not)
     if not user:
