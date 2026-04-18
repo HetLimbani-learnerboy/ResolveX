@@ -9,22 +9,13 @@ import {
   LogOut,
   Menu,
   Bell,
-  ClipboardCheck,
+  Activity,
   AlertTriangle,
   SearchCheck,
   TrendingUp,
   MessageSquareText,
+  MessageSquare,
   FileBarChart2
-import { 
-  ShieldCheck, 
-  LayoutDashboard, 
-  Users, 
-  LogOut,
-  Menu,
-  Bell,
-  PlusCircle,
-  Activity,
-  MessageSquare
 } from 'lucide-react';
 
 import '../styles/DashboardLayout.css';
@@ -43,20 +34,53 @@ const DashboardLayout = ({ children }) => {
   const role = user?.role;
 
   const getNavItems = () => {
-    const items = [];
+    let items = [];
 
-    // Common Dashboard
-    items.push({
-      path: '/dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard
-    });
+    /* =====================================
+       CUSTOMER
+    ===================================== */
+    if (role === 'customer') {
+      items = [
+        {
+          path: '/dashboard',
+          label: 'Overview',
+          icon: LayoutDashboard
+        },
+        {
+          path: '/dashboard#history',
+          label: 'Complaint History',
+          icon: Activity
+        },
+        {
+          path: '/dashboard#track',
+          label: 'Track Status',
+          icon: SearchCheck
+        },
+        {
+          path: '/dashboard#notifications',
+          label: 'Updates',
+          icon: Bell
+        },
+        {
+          path: '/dashboard#feedback',
+          label: 'Feedback',
+          icon: MessageSquare
+        }
+      ];
+    }
 
-    // =====================================
-    // OPERATIONS MANAGER NAVIGATION
-    // =====================================
-    if (role === 'operations_manager') {
-      items.push(
+    /* =====================================
+       OPERATIONS MANAGER
+    ===================================== */
+    else if (
+      role === 'operations_manager'
+    ) {
+      items = [
+        {
+          path: '/dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard
+        },
         {
           path: '/audit-complaints',
           label: 'Audit Complaints',
@@ -82,36 +106,37 @@ const DashboardLayout = ({ children }) => {
           label: 'Trends',
           icon: TrendingUp
         }
-      );
+      ];
     }
 
-    // =====================================
-    // ADMIN NAVIGATION
-    // =====================================
-    if (role === 'admin') {
-      items.push({
-        path: '/admin/users',
-        label: 'Manage Users',
-        icon: Users
-      });
-    let items = [];
-    
-    if (user?.role === 'customer') {
+    /* =====================================
+       ADMIN
+    ===================================== */
+    else if (role === 'admin') {
       items = [
-        { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-        { path: '/dashboard#history', label: 'Complaint History', icon: LayoutDashboard }, // using an appropriate icon
-        { path: '/dashboard#track', label: 'Track Status', icon: Activity },
-        { path: '/dashboard#notifications', label: 'Updates', icon: Bell },
-        { path: '/dashboard#feedback', label: 'Feedback', icon: MessageSquare }
+        {
+          path: '/dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard
+        },
+        {
+          path: '/admin/users',
+          label: 'Manage Users',
+          icon: Users
+        }
       ];
-    } else if (user?.role === 'admin') {
+    }
+
+    /* =====================================
+       DEFAULT
+    ===================================== */
+    else {
       items = [
-        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/admin/users', label: 'Manage Users', icon: Users }
-      ];
-    } else {
-      items = [
-        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
+        {
+          path: '/dashboard',
+          label: 'Dashboard',
+          icon: LayoutDashboard
+        }
       ];
     }
 
@@ -120,13 +145,38 @@ const DashboardLayout = ({ children }) => {
 
   const navItems = getNavItems();
 
+  const getPageTitle = () => {
+    const current = navItems.find(
+      (item) =>
+        item.path ===
+        location.pathname +
+          location.hash
+    );
+
+    if (current) return current.label;
+
+    const pathOnly =
+      navItems.find(
+        (item) =>
+          item.path ===
+          location.pathname
+      );
+
+    return (
+      pathOnly?.label ||
+      'Dashboard'
+    );
+  };
+
   return (
     <div className="dashboard-layout">
 
       {/* Sidebar */}
       <aside
         className={`sidebar ${
-          sidebarOpen ? 'open' : 'closed'
+          sidebarOpen
+            ? 'open'
+            : 'closed'
         }`}
       >
         {/* Header */}
@@ -139,22 +189,28 @@ const DashboardLayout = ({ children }) => {
             />
 
             {sidebarOpen && (
-              <span>ResolveX</span>
+              <span>
+                ResolveX
+              </span>
             )}
           </div>
 
           <button
             className="mobile-toggle"
             onClick={() =>
-              setSidebarOpen(!sidebarOpen)
+              setSidebarOpen(
+                !sidebarOpen
+              )
             }
           >
             <Menu size={20} />
           </button>
+
         </div>
 
         {/* Navigation */}
         <nav className="sidebar-nav">
+
           <div className="nav-section-title">
             {sidebarOpen
               ? 'Navigation'
@@ -162,46 +218,54 @@ const DashboardLayout = ({ children }) => {
           </div>
 
           <ul>
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`nav-link ${
-                    location.pathname ===
-                    item.path
-                      ? 'active'
-                      : ''
-                  }`}
-                >
-                  <item.icon size={20} />
+            {navItems.map(
+              (item) => {
+                const isActive =
+                  item.path.includes(
+                    '#'
+                  )
+                    ? location.pathname +
+                        location.hash ===
+                      item.path
+                    : location.pathname ===
+                      item.path;
 
-                  {sidebarOpen && (
-                    <span>
-                      {item.label}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            ))}
-             <div className="nav-section-title">{sidebarOpen ? 'Overview' : '•••'}</div>
-            {navItems.map((item) => {
-              const isActive = item.path.includes('#') 
-                ? location.pathname + location.hash === item.path
-                : location.pathname === item.path && location.hash === '';
-
-              return (
-                <li key={item.path}>
-                  <Link 
-                    to={item.path} 
-                    className={`nav-link ${isActive ? 'active' : ''}`}
+                return (
+                  <li
+                    key={
+                      item.path
+                    }
                   >
-                    <item.icon size={20} />
-                    {sidebarOpen && <span>{item.label}</span>}
-                  </Link>
-                </li>
-              );
-            })}
+                    <Link
+                      to={
+                        item.path
+                      }
+                      className={`nav-link ${
+                        isActive
+                          ? 'active'
+                          : ''
+                      }`}
+                    >
+                      <item.icon
+                        size={
+                          20
+                        }
+                      />
+
+                      {sidebarOpen && (
+                        <span>
+                          {
+                            item.label
+                          }
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              }
+            )}
           </ul>
+
         </nav>
 
         {/* Footer */}
@@ -210,13 +274,17 @@ const DashboardLayout = ({ children }) => {
           <div className="user-profile">
 
             <div className="avatar">
-              {user?.full_name?.charAt(0)}
+              {user?.full_name?.charAt(
+                0
+              )}
             </div>
 
             {sidebarOpen && (
               <div className="user-info">
                 <div className="user-name">
-                  {user?.full_name}
+                  {
+                    user?.full_name
+                  }
                 </div>
 
                 <div className="user-role">
@@ -224,6 +292,7 @@ const DashboardLayout = ({ children }) => {
                 </div>
               </div>
             )}
+
           </div>
 
           <button
@@ -233,7 +302,9 @@ const DashboardLayout = ({ children }) => {
             <LogOut size={20} />
 
             {sidebarOpen && (
-              <span>Logout</span>
+              <span>
+                Logout
+              </span>
             )}
           </button>
 
@@ -252,7 +323,9 @@ const DashboardLayout = ({ children }) => {
               <button
                 className="desktop-toggle"
                 onClick={() =>
-                  setSidebarOpen(true)
+                  setSidebarOpen(
+                    true
+                  )
                 }
               >
                 <Menu size={20} />
@@ -260,22 +333,18 @@ const DashboardLayout = ({ children }) => {
             )}
 
             <h1 className="page-title">
-              {
-                navItems.find(
-                  (i) =>
-                    i.path ===
-                    location.pathname
-                )?.label
-              || 'Dashboard'}
+              {getPageTitle()}
             </h1>
 
           </div>
 
           <div className="topbar-right">
+
             <button className="icon-btn">
               <Bell size={20} />
               <span className="notification-dot"></span>
             </button>
+
           </div>
 
         </header>
@@ -286,6 +355,7 @@ const DashboardLayout = ({ children }) => {
         </div>
 
       </main>
+
     </div>
   );
 };
