@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  
+
   // AI Integration state
   const [complaintText, setComplaintText] = useState('');
   const [channel, setChannel] = useState('Email');
@@ -35,7 +35,7 @@ const SupportDashboard = () => {
         body: JSON.stringify({ text: complaintText, channel: channel })
       });
       const data = await response.json();
-      
+
       const newTicket = {
         id: `TKT-${Math.floor(Math.random() * 1000) + 2000}`,
         channel: channel,
@@ -49,7 +49,7 @@ const SupportDashboard = () => {
         sentiment: data.sentiment_score,
         timestamp: data.timestamp || new Date().toLocaleString()
       };
-      
+
       setLiveTicket(newTicket);
       setTickets(prev => [newTicket, ...prev]);
       setComplaintText('');
@@ -74,11 +74,12 @@ const SupportDashboard = () => {
         <div className="card" style={{ background: 'linear-gradient(145deg, rgba(30,30,40,0.8) 0%, rgba(20,20,30,1) 100%)', border: '1px solid var(--brand-accent)' }}>
           <div className="card-header">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} color="var(--brand-accent)" /> 
+              <Sparkles size={20} color="var(--brand-accent)" />
               Live AI Complaint Classification
             </h3>
           </div>
           <div style={{ padding: '0 1.5rem 1.5rem' }}>
+<<<<<<< HEAD
              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
                Paste a customer complaint from any channel below. Our ML pipeline processes the raw text — whether it's an email body, call transcript, or chat message — to instantly classify, prioritize, and recommend actions.
              </p>
@@ -125,6 +126,28 @@ const SupportDashboard = () => {
                  {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
                </button>
              </div>
+=======
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              Enter a raw customer complaint below. Our ML model will instantly categorize it, assign priority based on sentiment, and the LLM recommendation engine will generate an actionable step.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g., 'Box was absolutely broken when it arrived!!'"
+                value={complaintText}
+                onChange={(e) => setComplaintText(e.target.value)}
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}
+              />
+              <button
+                className="btn btn-primary glow-btn"
+                onClick={handleClassifyAI}
+                disabled={isAiLoading || !complaintText}
+              >
+                {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
+              </button>
+            </div>
+>>>>>>> 8ced742e14fbe7f19b88bc762708a7ce7910cc7f
           </div>
         </div>
       </div>
@@ -258,7 +281,7 @@ const SupportDashboard = () => {
           <div className="drawer">
             <div className="drawer-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sparkles size={16} color="var(--brand-accent)" /> 
+                <Sparkles size={16} color="var(--brand-accent)" />
                 Resolve {selectedTicket.id}
               </h3>
               <button className="icon-btn" onClick={() => setSelectedTicket(null)}><X size={20} /></button>
@@ -304,15 +327,32 @@ const SupportDashboard = () => {
                   </div>
                 </div>
               </div>
+<<<<<<< HEAD
               
               {/* AI Analysis */}
+=======
+
+>>>>>>> 8ced742e14fbe7f19b88bc762708a7ce7910cc7f
               <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                   <Sparkles size={14} /> AI Recommendation
                 </div>
                 <div className="ai-chat-bubble">
+<<<<<<< HEAD
                   <strong>Copilot:</strong> {selectedTicket.aiAction}
                 </div>
+=======
+                  <strong>Copilot:</strong> I've scanned the logs. The server downtime appears to be due to an out-of-memory exception on Node B.
+                </div>
+                <div className="ai-chat-bubble">
+                  <strong>Copilot:</strong> Suggested action: {selectedTicket.aiAction}
+                </div>
+                {selectedTicket.sentiment !== undefined && (
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--brand-accent)' }}>
+                    * Model Sentiment Score: {selectedTicket.sentiment}
+                  </div>
+                )}
+>>>>>>> 8ced742e14fbe7f19b88bc762708a7ce7910cc7f
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '2rem', display: 'flex', gap: '1rem' }}>

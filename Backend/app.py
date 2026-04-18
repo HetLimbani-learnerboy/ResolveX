@@ -14,8 +14,13 @@ from models.feedback_model import create_feedback_table
 
 from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
+<<<<<<< HEAD
 from routes.ai_routes import ai_bp
 from routes.admin_routes import admin_bp
+=======
+from routes.chat_routes import chat_bp
+from routes.complaint_routes import complaint_bp
+>>>>>>> 8ced742e14fbe7f19b88bc762708a7ce7910cc7f
 
 load_dotenv()
 
@@ -35,6 +40,9 @@ app.register_blueprint(user_bp, url_prefix="/api/users")
 app.register_blueprint(ai_bp, url_prefix="/api/ai")
 app.register_blueprint(login_bp, url_prefix="/api/auth")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
+app.register_blueprint(login_bp, url_prefix="/api/auth")
+app.register_blueprint(chat_bp, url_prefix="/api/chat")
+app.register_blueprint(complaint_bp, url_prefix="/api/complaints")
 
 
 @app.route("/")

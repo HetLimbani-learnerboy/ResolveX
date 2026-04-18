@@ -6,7 +6,15 @@ load_dotenv()
 
 def get_connection():
     try:
-        return psycopg2.connect(os.getenv("DATABASE_URL"))
-    except psycopg2.OperationalError as e:
-        print(f"Database Connection Error: {e}")
-        raise Exception("Database is currently offline or unreachable. Please check your DATABASE_URL in .env.")
+        url = os.getenv("DATABASE_URL")
+        if not url:
+            print("❌ Error: DATABASE_URL not found in environment variables.")
+            return None
+        return psycopg2.connect(url)
+    except Exception as e:
+        # Check if it's a DNS/Host error to give a better tip
+        if "translate host name" in str(e):
+            print(f"❌ Database DNS Error: Your computer can't find the host. Tip: Check your internet or ensure the hostname in .env is correct.")
+        else:
+            print(f"❌ Database Connection Error: {e}")
+        return None
