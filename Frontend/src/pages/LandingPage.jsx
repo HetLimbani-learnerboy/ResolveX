@@ -31,8 +31,8 @@ const LandingPage = () => {
           </div>
 
           <h1 className="hero-title animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            Resolve Complaints<br />
-            <span className="text-gradient">At the Speed of Light.</span>
+            Resolve Complaints<br/>
+            <span className="text-gradient">Turn Issues Into Trust</span>
           </h1>
 
           <p className="hero-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
