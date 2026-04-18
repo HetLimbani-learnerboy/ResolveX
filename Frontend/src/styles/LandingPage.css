@@ -23,7 +23,7 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid #f1f5f9;
-   
+
 }
 
 .nav-inner {
@@ -258,9 +258,17 @@
   border-radius: 50%;
 }
 
-.dot-red { background: #f87171; }
-.dot-yellow { background: #fbbf24; }
-.dot-green { background: #34d399; }
+.dot-red {
+  background: #f87171;
+}
+
+.dot-yellow {
+  background: #fbbf24;
+}
+
+.dot-green {
+  background: #34d399;
+}
 
 .browser-url {
   flex: 1;

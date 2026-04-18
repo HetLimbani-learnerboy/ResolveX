@@ -4,7 +4,7 @@ import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle } from 'lucide-react'
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  
+
   // AI Integration state
   const [complaintText, setComplaintText] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -33,7 +33,7 @@ const SupportDashboard = () => {
         body: JSON.stringify({ text: complaintText })
       });
       const data = await response.json();
-      
+
       const newTicket = {
         id: `TKT-${Math.floor(Math.random() * 1000) + 2000}`,
         customer: 'Live Insight',
@@ -44,7 +44,7 @@ const SupportDashboard = () => {
         aiAction: data.recommendation || 'Escalate to QA',
         sentiment: data.sentiment_score
       };
-      
+
       setLiveTicket(newTicket);
       setTickets(prev => [newTicket, ...prev]);
       setComplaintText('');
@@ -62,31 +62,31 @@ const SupportDashboard = () => {
         <div className="card" style={{ background: 'linear-gradient(145deg, rgba(30,30,40,0.8) 0%, rgba(20,20,30,1) 100%)', border: '1px solid var(--brand-accent)' }}>
           <div className="card-header">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} color="var(--brand-accent)" /> 
+              <Sparkles size={20} color="var(--brand-accent)" />
               Live AI Complaint Classification
             </h3>
           </div>
           <div style={{ padding: '0 1.5rem 1.5rem' }}>
-             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-               Enter a raw customer complaint below. Our ML model will instantly categorize it, assign priority based on sentiment, and the LLM recommendation engine will generate an actionable step.
-             </p>
-             <div style={{ display: 'flex', gap: '1rem' }}>
-               <input 
-                 type="text" 
-                 className="form-input" 
-                 placeholder="e.g., 'Box was absolutely broken when it arrived!!'" 
-                 value={complaintText}
-                 onChange={(e) => setComplaintText(e.target.value)}
-                 style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}
-               />
-               <button 
-                 className="btn btn-primary glow-btn" 
-                 onClick={handleClassifyAI} 
-                 disabled={isAiLoading || !complaintText}
-               >
-                 {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
-               </button>
-             </div>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              Enter a raw customer complaint below. Our ML model will instantly categorize it, assign priority based on sentiment, and the LLM recommendation engine will generate an actionable step.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g., 'Box was absolutely broken when it arrived!!'"
+                value={complaintText}
+                onChange={(e) => setComplaintText(e.target.value)}
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}
+              />
+              <button
+                className="btn btn-primary glow-btn"
+                onClick={handleClassifyAI}
+                disabled={isAiLoading || !complaintText}
+              >
+                {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -145,7 +145,7 @@ const SupportDashboard = () => {
           <div className="drawer">
             <div className="drawer-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sparkles size={16} color="var(--brand-accent)" /> 
+                <Sparkles size={16} color="var(--brand-accent)" />
                 Resolve {selectedTicket.id}
               </h3>
               <button className="icon-btn" onClick={() => setSelectedTicket(null)}><X size={20} /></button>
@@ -155,21 +155,21 @@ const SupportDashboard = () => {
                 <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{selectedTicket.title}</h4>
                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Customer: {selectedTicket.customer}</div>
               </div>
-              
+
               <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>
                   <AlertCircle size={14} /> AI Analysis Log
                 </div>
                 <div className="ai-chat-bubble">
-                  <strong>Copilot:</strong> I've scanned the logs. The server downtime appears to be due to an out-of-memory exception on Node B. 
+                  <strong>Copilot:</strong> I've scanned the logs. The server downtime appears to be due to an out-of-memory exception on Node B.
                 </div>
                 <div className="ai-chat-bubble">
                   <strong>Copilot:</strong> Suggested action: {selectedTicket.aiAction}
                 </div>
                 {selectedTicket.sentiment !== undefined && (
-                   <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--brand-accent)' }}>
-                     * Model Sentiment Score: {selectedTicket.sentiment}
-                   </div>
+                  <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--brand-accent)' }}>
+                    * Model Sentiment Score: {selectedTicket.sentiment}
+                  </div>
                 )}
               </div>
 

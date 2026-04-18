@@ -14,7 +14,8 @@ from models.feedback_model import create_feedback_table
 
 from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
-from routes.ai_routes import ai_bp
+from routes.chat_routes import chat_bp
+from routes.complaint_routes import complaint_bp
 
 load_dotenv()
 
@@ -31,11 +32,9 @@ except Exception as e:
     print(f"Warning: Could not connect to Database on startup. Ensure PostgreSQL is running. Error: {e}")
 
 app.register_blueprint(user_bp, url_prefix="/api/users")
-<<<<<<< HEAD
-app.register_blueprint(ai_bp, url_prefix="/api/ai")
-=======
 app.register_blueprint(login_bp, url_prefix="/api/auth")
->>>>>>> f929aa9d3139391eac6d726752d1503d752ec600
+app.register_blueprint(chat_bp, url_prefix="/api/chat")
+app.register_blueprint(complaint_bp, url_prefix="/api/complaints")
 
 
 @app.route("/")
