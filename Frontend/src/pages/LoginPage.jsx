@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, Loader2, Eye, EyeOff } from 'lucide-react';
 import '../styles/LoginPage.css';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const LoginPage = () => {
   const navigate = useNavigate();

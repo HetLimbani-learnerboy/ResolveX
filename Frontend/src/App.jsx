@@ -9,17 +9,15 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import CustomerDashboard from './pages/dashboards/CustomerDashboard';
-import SupportDashboard from './pages/dashboards/SupportDashboard'; // This serves 'executive'
+import SupportDashboard from './pages/dashboards/SupportDashboard';
 import QADashboard from './pages/dashboards/QADashboard';
 import ManagerDashboard from './pages/dashboards/ManagerDashboard';
 import AdminDashboard from './pages/dashboards/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 
 /**
- * Enhanced ProtectedRoute
- * 1. Checks if user is logged in
- * 2. Checks if user role matches allowed roles
- * 3. Handles the "Loading" state from AuthContext
+ * ProtectedRoute Component
+ * Restricts access based on authentication and role permissions.
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -27,17 +25,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   if (loading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h2>Loading ResolveX...</h2>
+        <div className="animate-pulse text-xl font-bold">Verifying Session...</div>
       </div>
     );
   }
 
   if (!user) return <Navigate to="/login" replace />;
 
-  // If specific roles are required and user doesn't have them
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Note: We removed the hardcoded 'admin' bypass here to ensure 
-    // explicit permission, but you can add it back if admins should see everything.
+    // If user is logged in but doesn't have the role for this specific URL,
+    // send them back to their own default dashboard.
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -46,28 +43,21 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 /**
  * DashboardRouter
- * Directs the user to the correct dashboard component based on 
- * the exact role strings returned by your Python Backend.
+ * The "Switchboard": Determines which specific component to show 
+ * when the user hits the generic /dashboard route.
  */
 const DashboardRouter = () => {
   const { user } = useAuth();
   
   if (!user) return <Navigate to="/login" replace />;
 
-  // These cases MUST match your database/Postman strings exactly
   switch (user.role) {
-    case 'admin': 
-      return <AdminDashboard />;
-    case 'customer': 
-      return <CustomerDashboard />;
-    case 'executive': // Matches your Postman data
-      return <SupportDashboard />;
-    case 'qa_team':   // Matches common DB naming
-      return <QADashboard />;
-    case 'operations_manager': // Matches your login redirect logic
-      return <ManagerDashboard />;
-    default: 
-      return <div className="p-4">Unknown Role: {user.role}</div>;
+    case 'admin':              return <AdminDashboard />;
+    case 'customer':           return <CustomerDashboard />;
+    case 'executive':          return <SupportDashboard />;
+    case 'qa_team':            return <QADashboard />;
+    case 'operations_manager': return <ManagerDashboard />;
+    default:                   return <Navigate to="/login" replace />;
   }
 };
 
@@ -76,11 +66,11 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* Public Access */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           
-          {/* Dynamic Dashboard Route */}
+          {/* 1. The Primary Dynamic Route */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <DashboardLayout>
@@ -89,24 +79,48 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Role-Specific Named Routes (Optional) */}
-          <Route path="/executive-dashboard" element={
-            <ProtectedRoute allowedRoles={['executive', 'admin']}>
-              <DashboardLayout>
-                <SupportDashboard />
-              </DashboardLayout>
+          {/* 2. Explicit Role-Based Routes (Supports all roles) */}
+          
+          {/* Admin & Management */}
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout><AdminDashboard /></DashboardLayout>
             </ProtectedRoute>
           } />
 
           <Route path="/admin/users" element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <DashboardLayout>
-                <UserManagement />
-              </DashboardLayout>
+              <DashboardLayout><UserManagement /></DashboardLayout>
             </ProtectedRoute>
           } />
 
-          {/* Catch-all Redirect */}
+          <Route path="/manager-dashboard" element={
+            <ProtectedRoute allowedRoles={['operations_manager', 'admin']}>
+              <DashboardLayout><ManagerDashboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Support & QA */}
+          <Route path="/executive-dashboard" element={
+            <ProtectedRoute allowedRoles={['executive', 'admin']}>
+              <DashboardLayout><SupportDashboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/qa-dashboard" element={
+            <ProtectedRoute allowedRoles={['qa_team', 'admin']}>
+              <DashboardLayout><QADashboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Customer */}
+          <Route path="/customer-dashboard" element={
+            <ProtectedRoute allowedRoles={['customer', 'admin']}>
+              <DashboardLayout><CustomerDashboard /></DashboardLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
