@@ -8,8 +8,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 1. IMPROVEMENT: Wrap logout in useCallback to prevent unnecessary re-renders
-  // and allow it to be used as a dependency in other hooks.
+  /**
+   * Logout Function
+   * Clears state and local storage. Wrapped in useCallback to ensure 
+   * stability for our useEffect dependencies.
+   */
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
@@ -17,7 +20,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('resolvex_token');
   }, []);
 
-  // 2. IMPROVEMENT: Initialization logic
+  /**
+   * Initialization
+   * Runs once on mount to check if the user is already logged in.
+   */
   useEffect(() => {
     const initAuth = () => {
       try {
@@ -25,14 +31,23 @@ export const AuthProvider = ({ children }) => {
         const savedToken = localStorage.getItem('resolvex_token');
 
         if (savedUser && savedToken) {
-          // Optional: Add a JWT expiration check here if you want to be strict
-          setUser(JSON.parse(savedUser));
-          setToken(savedToken);
+          // Parse user data and set state
+          const parsedUser = JSON.parse(savedUser);
+          
+          // Double check the role exists in the parsed object
+          if (parsedUser && parsedUser.role) {
+            setUser(parsedUser);
+            setToken(savedToken);
+          } else {
+            // If data is malformed, clear it
+            logout();
+          }
         }
       } catch (err) {
         console.error("Auth initialization failed:", err);
-        logout(); // Clear potentially corrupted data
+        logout();
       } finally {
+        // Essential: Stop the loading spinner
         setLoading(false);
       }
     };
@@ -40,8 +55,10 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, [logout]);
 
-  // 3. IMPROVEMENT: Cross-tab logout synchronization
-  // If a user logs out in one tab, they should be logged out in all tabs.
+  /**
+   * Cross-Tab Synchronization
+   * If the user logs out in another browser tab, log them out here too.
+   */
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'resolvex_token' && !e.newValue) {
@@ -52,9 +69,14 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [logout]);
 
+  /**
+   * Login Function
+   * @param {string} jwtToken - The token from the Python backend
+   * @param {object} userData - The user object from the Python backend
+   */
   const login = (jwtToken, userData) => {
     if (!jwtToken || !userData) {
-      setError("Invalid login data received");
+      setError("Invalid login credentials received.");
       return;
     }
 
@@ -66,8 +88,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('resolvex_token', jwtToken);
       setError('');
     } catch (err) {
-      console.error("Failed to save auth data:", err);
-      setError("Failed to persist login session");
+      console.error("Failed to save auth session:", err);
+      setError("Session persistence failed.");
     }
   };
 
@@ -83,14 +105,15 @@ export const AuthProvider = ({ children }) => {
         setError 
       }}
     >
-      {/* Only render children if not loading. 
-        This prevents protected routes from flashing 
-        before we know if the user is logged in.
+      {/* CRITICAL: We don't render children while checking localStorage.
+        This prevents unauthorized "flashes" of dashboard content.
       */}
       {!loading ? children : (
-        <div className="loading-screen">
-          {/* You can replace this with a real spinner component */}
-          <p>Loading ResolveX...</p>
+        <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-lg font-medium">Initializing ResolveX...</p>
+          </div>
         </div>
       )}
     </AuthContext.Provider>
