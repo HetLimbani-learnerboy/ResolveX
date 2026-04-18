@@ -43,7 +43,7 @@ const UserManagement = () => {
                 <input 
                   type="text" 
                   style={{
-                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'white'
+                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'black'
                   }}
                   value={newUser.name}
                   onChange={(e) => setNewUser({...newUser, name: e.target.value})}
@@ -55,7 +55,7 @@ const UserManagement = () => {
                 <input 
                   type="email" 
                   style={{
-                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'white'
+                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'black'
                   }}
                   value={newUser.email}
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
@@ -66,7 +66,7 @@ const UserManagement = () => {
                 <label>Role</label>
                 <select 
                   style={{
-                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'white'
+                    padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'black'
                   }}
                   value={newUser.role}
                   onChange={(e) => setNewUser({...newUser, role: e.target.value})}
@@ -83,7 +83,7 @@ const UserManagement = () => {
                 <input 
                   type="password" 
                   style={{
-                     padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'white'
+                     padding: '0.5rem 0.75rem', backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-md)', color: 'black'
                   }}
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
