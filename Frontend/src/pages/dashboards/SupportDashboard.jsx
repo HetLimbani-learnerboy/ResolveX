@@ -4,12 +4,16 @@ import { PlayCircle, CheckCircle, X, Sparkles, AlertCircle } from 'lucide-react'
 const SupportDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
-
-  const tickets = [
+  
+  // AI Integration state
+  const [complaintText, setComplaintText] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [liveTicket, setLiveTicket] = useState(null);
+  const [tickets, setTickets] = useState([
     { id: 'TKT-1043', customer: 'Acme Corp', title: 'Server downtime since Monday', category: 'Infrastructure', priority: 'High', status: 'Pending', aiAction: 'Restart nodes & refund SLA.' },
     { id: 'TKT-1044', customer: 'Stark Ind', title: 'Billing issue for pro plan', category: 'Billing', priority: 'Medium', status: 'Pending', aiAction: 'Apply adjustment credit.' },
     { id: 'TKT-1045', customer: 'Wayne Ent', title: 'UI bug on settings page', category: 'Bug', priority: 'Low', status: 'Pending', aiAction: 'Log to engineering backlog.' }
-  ];
+  ]);
 
   useEffect(() => {
     // Simulate complex data fetching
@@ -19,8 +23,74 @@ const SupportDashboard = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleClassifyAI = async () => {
+    if (!complaintText) return;
+    setIsAiLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/ai/process_complaint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: complaintText })
+      });
+      const data = await response.json();
+      
+      const newTicket = {
+        id: `TKT-${Math.floor(Math.random() * 1000) + 2000}`,
+        customer: 'Live Insight',
+        title: data.original_text.substring(0, 30) + '...',
+        category: data.category || 'Unknown',
+        priority: data.priority || 'Medium',
+        status: 'Pending',
+        aiAction: data.recommendation || 'Escalate to QA',
+        sentiment: data.sentiment_score
+      };
+      
+      setLiveTicket(newTicket);
+      setTickets(prev => [newTicket, ...prev]);
+      setComplaintText('');
+    } catch (error) {
+      console.error("AI API Error:", error);
+      alert("Failed to reach AI Backend. Is the Flask server running?");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   return (
     <div className="dashboard-grid relative">
+      <div className="col-span-12 mb-6">
+        <div className="card" style={{ background: 'linear-gradient(145deg, rgba(30,30,40,0.8) 0%, rgba(20,20,30,1) 100%)', border: '1px solid var(--brand-accent)' }}>
+          <div className="card-header">
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={20} color="var(--brand-accent)" /> 
+              Live AI Complaint Classification
+            </h3>
+          </div>
+          <div style={{ padding: '0 1.5rem 1.5rem' }}>
+             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+               Enter a raw customer complaint below. Our ML model will instantly categorize it, assign priority based on sentiment, and the LLM recommendation engine will generate an actionable step.
+             </p>
+             <div style={{ display: 'flex', gap: '1rem' }}>
+               <input 
+                 type="text" 
+                 className="form-input" 
+                 placeholder="e.g., 'Box was absolutely broken when it arrived!!'" 
+                 value={complaintText}
+                 onChange={(e) => setComplaintText(e.target.value)}
+                 style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-card)' }}
+               />
+               <button 
+                 className="btn btn-primary glow-btn" 
+                 onClick={handleClassifyAI} 
+                 disabled={isAiLoading || !complaintText}
+               >
+                 {isAiLoading ? 'Analyzing...' : 'Run AI Analysis'}
+               </button>
+             </div>
+          </div>
+        </div>
+      </div>
+
       <div className="col-span-12">
         <div className="card">
           <div className="card-header">
@@ -96,6 +166,11 @@ const SupportDashboard = () => {
                 <div className="ai-chat-bubble">
                   <strong>Copilot:</strong> Suggested action: {selectedTicket.aiAction}
                 </div>
+                {selectedTicket.sentiment !== undefined && (
+                   <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--brand-accent)' }}>
+                     * Model Sentiment Score: {selectedTicket.sentiment}
+                   </div>
+                )}
               </div>
 
               <div style={{ marginTop: 'auto', paddingTop: '2rem', display: 'flex', gap: '1rem' }}>
