@@ -7,6 +7,10 @@ from config.db import get_connection
 
 def create_customer_table():
     conn = get_connection()
+    if not conn:
+        print("⚠️ Warning: Cannot create customer table without DB connection.")
+        return
+
     cur = conn.cursor()
 
     cur.execute("""

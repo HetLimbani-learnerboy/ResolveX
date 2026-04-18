@@ -38,7 +38,7 @@ preprocessor = TextPreprocessor()
 # ============================================================
 def get_gemini_model():
     """Returns a configured Gemini model instance. Returns None if no API key."""
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("gemini_ai_key")
     if not api_key or api_key == "":
         return None
     genai.configure(api_key=api_key)

@@ -270,6 +270,19 @@ def get_complaints():
     """Returns all processed complaints for export/display."""
     return jsonify(complaint_history)
 
+@admin_bp.route("/complaints/<complaint_id>", methods=["PUT"])
+def update_complaint(complaint_id):
+    """Update a complaint (e.g. correct misclassification)."""
+    data = request.json
+    for c in complaint_history:
+        if c.get("id") == complaint_id:
+            if "category" in data:
+                c["category"] = data["category"]
+            if "priority" in data:
+                c["priority"] = data["priority"]
+            return jsonify({"message": "Complaint updated successfully", "complaint": c})
+    return jsonify({"error": "Complaint not found"}), 404
+
 # ============================================================
 # EXPORT REPORTS — CSV
 # ============================================================
