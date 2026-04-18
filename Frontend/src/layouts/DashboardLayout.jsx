@@ -4,13 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { 
   ShieldCheck, 
   LayoutDashboard, 
-  ListTodo, 
-  Activity, 
-  BarChart, 
   Users, 
   LogOut,
   Menu,
-  Bell
+  Bell,
+  PlusCircle,
+  Activity,
+  MessageSquare
 } from 'lucide-react';
 import '../styles/DashboardLayout.css';
 
@@ -21,12 +21,25 @@ const DashboardLayout = ({ children }) => {
 
   // Navigation logic based on roles
   const getNavItems = () => {
-    const items = [
-      { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
-    ];
-
-    if (user?.role === 'admin') {
-      items.push({ path: '/admin/users', label: 'Manage Users', icon: Users });
+    let items = [];
+    
+    if (user?.role === 'customer') {
+      items = [
+        { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+        { path: '/dashboard#history', label: 'Complaint History', icon: LayoutDashboard }, // using an appropriate icon
+        { path: '/dashboard#track', label: 'Track Status', icon: Activity },
+        { path: '/dashboard#notifications', label: 'Updates', icon: Bell },
+        { path: '/dashboard#feedback', label: 'Feedback', icon: MessageSquare }
+      ];
+    } else if (user?.role === 'admin') {
+      items = [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/admin/users', label: 'Manage Users', icon: Users }
+      ];
+    } else {
+      items = [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
+      ];
     }
 
     return items;
@@ -51,17 +64,23 @@ const DashboardLayout = ({ children }) => {
         <nav className="sidebar-nav">
           <ul>
              <div className="nav-section-title">{sidebarOpen ? 'Overview' : '•••'}</div>
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link 
-                  to={item.path} 
-                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                >
-                  <item.icon size={20} />
-                  {sidebarOpen && <span>{item.label}</span>}
-                </Link>
-              </li>
-            ))}
+            {navItems.map((item) => {
+              const isActive = item.path.includes('#') 
+                ? location.pathname + location.hash === item.path
+                : location.pathname === item.path && location.hash === '';
+
+              return (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path} 
+                    className={`nav-link ${isActive ? 'active' : ''}`}
+                  >
+                    <item.icon size={20} />
+                    {sidebarOpen && <span>{item.label}</span>}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
