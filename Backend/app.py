@@ -12,6 +12,7 @@ from models.complaint_model import create_complaint_table
 from models.history_model import create_history_table
 from models.feedback_model import create_feedback_table
 
+from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
 
 load_dotenv()
@@ -26,6 +27,7 @@ create_history_table()
 create_feedback_table()
 
 app.register_blueprint(user_bp, url_prefix="/api/users")
+app.register_blueprint(login_bp, url_prefix="/api/auth")
 
 
 @app.route("/")
