@@ -29,17 +29,17 @@ const LandingPage = () => {
             <Sparkles size={14} />
             <span>AI-Powered Resolution Engine</span>
           </div>
-          
+
           <h1 className="hero-title animate-fade-in" style={{ animationDelay: '0.1s' }}>
             Resolve Complaints<br/>
             <span className="text-gradient">Turn Issues Into Trust</span>
           </h1>
-          
+
           <p className="hero-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
             Enterprise-grade classification, priority detection, and SLA tracking.
             Automate your entire customer support pipeline with AI.
           </p>
-          
+
           <div className="hero-actions animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <Link to="/login" className="btn btn-primary btn-lg">
               Enter Dashboard <ArrowRight size={18} />
@@ -124,7 +124,7 @@ const LandingPage = () => {
       <section className="features-section" id="features">
         <div className="features-inner">
           <div className="features-header">
-            <h2>Everything you need to<br/><span className="text-gradient">resolve at scale.</span></h2>
+            <h2>Everything you need to<br /><span className="text-gradient">resolve at scale.</span></h2>
             <p>Powerful AI tools designed for modern support teams.</p>
           </div>
           <div className="features-grid">

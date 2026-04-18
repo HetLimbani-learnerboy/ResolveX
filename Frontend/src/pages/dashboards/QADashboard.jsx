@@ -138,43 +138,17 @@ const QADashboard = () => {
             >
               <AreaChart data={trendData}>
                 <defs>
-                  <linearGradient
-                    id="colorBugs"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor="#6366f1"
-                      stopOpacity={0.35}
-                    />
-
-                    <stop
-                      offset="95%"
-                      stopColor="#6366f1"
-                      stopOpacity={0}
-                    />
+                  <linearGradient id="colorBugs" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--brand-accent)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--brand-accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                />
-
-                <XAxis dataKey="name" />
-
-                <YAxis />
-
-                <Tooltip />
-
-                <Area
-                  type="monotone"
-                  dataKey="bugs"
-                  stroke="#6366f1"
-                  fillOpacity={1}
-                  fill="url(#colorBugs)"
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}
+                  itemStyle={{ fontSize: '14px' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

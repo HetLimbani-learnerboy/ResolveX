@@ -15,6 +15,16 @@ import {
   TrendingUp,
   MessageSquareText,
   FileBarChart2
+import { 
+  ShieldCheck, 
+  LayoutDashboard, 
+  Users, 
+  LogOut,
+  Menu,
+  Bell,
+  PlusCircle,
+  Activity,
+  MessageSquare
 } from 'lucide-react';
 
 import '../styles/DashboardLayout.css';
@@ -84,6 +94,25 @@ const DashboardLayout = ({ children }) => {
         label: 'Manage Users',
         icon: Users
       });
+    let items = [];
+    
+    if (user?.role === 'customer') {
+      items = [
+        { path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+        { path: '/dashboard#history', label: 'Complaint History', icon: LayoutDashboard }, // using an appropriate icon
+        { path: '/dashboard#track', label: 'Track Status', icon: Activity },
+        { path: '/dashboard#notifications', label: 'Updates', icon: Bell },
+        { path: '/dashboard#feedback', label: 'Feedback', icon: MessageSquare }
+      ];
+    } else if (user?.role === 'admin') {
+      items = [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/admin/users', label: 'Manage Users', icon: Users }
+      ];
+    } else {
+      items = [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
+      ];
     }
 
     return items;
@@ -154,6 +183,24 @@ const DashboardLayout = ({ children }) => {
                 </Link>
               </li>
             ))}
+             <div className="nav-section-title">{sidebarOpen ? 'Overview' : '•••'}</div>
+            {navItems.map((item) => {
+              const isActive = item.path.includes('#') 
+                ? location.pathname + location.hash === item.path
+                : location.pathname === item.path && location.hash === '';
+
+              return (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path} 
+                    className={`nav-link ${isActive ? 'active' : ''}`}
+                  >
+                    <item.icon size={20} />
+                    {sidebarOpen && <span>{item.label}</span>}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 

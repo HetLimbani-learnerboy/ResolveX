@@ -14,6 +14,7 @@ from models.feedback_model import create_feedback_table
 
 from routes.auth_routes import login_bp
 from routes.user_routes import user_bp
+from routes.chat_routes import chat_bp
 from routes.complaint_routes import complaint_bp
 
 load_dotenv()
@@ -21,14 +22,18 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-create_user_table()
-create_customer_table()
-create_complaint_table()
-create_history_table()
-create_feedback_table()
+try:
+    create_user_table()
+    create_customer_table()
+    create_complaint_table()
+    create_history_table()
+    create_feedback_table()
+except Exception as e:
+    print(f"Warning: Could not connect to Database on startup. Ensure PostgreSQL is running. Error: {e}")
 
 app.register_blueprint(user_bp, url_prefix="/api/users")
 app.register_blueprint(login_bp, url_prefix="/api/auth")
+app.register_blueprint(chat_bp, url_prefix="/api/chat")
 app.register_blueprint(complaint_bp, url_prefix="/api/complaints")
 
 
