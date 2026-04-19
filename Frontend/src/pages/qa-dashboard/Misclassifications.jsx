@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AlertTriangle, Edit, X, Save, Search, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import toast from 'react-hot-toast';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
 const CATEGORIES = ["Product", "Packaging", "Trade", "Payment", "Delivery", "Service", "Account", "App/Website", "Other", "Wrong Complain"];
@@ -65,7 +66,7 @@ const Misclassifications = () => {
       ));
       setEditingTicket(null);
     } catch (err) {
-      alert("Network error updating ticket.");
+      toast.error('Network error updating ticket.');
     } finally {
       setSaving(false);
     }

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Database, Server, Users, Layers, RefreshCw, Activity, FileText, Download, Settings, Tag, Cpu, Trash2, Plus, X, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import toast from 'react-hot-toast';
 
 const COLORS = ['#2563eb', '#059669', '#d97706', '#dc2626', '#6366f1', '#0891b2', '#f97316'];
-const API = 'http://localhost:5000/api/admin';
+const API = (import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000') + '/api/admin';
 
 const AdminDashboard = () => {
   // Tab state
@@ -89,8 +90,8 @@ const AdminDashboard = () => {
         body: JSON.stringify(newCat)
       });
       if (res.ok) { setNewCat({ name: '', description: '' }); setShowAddCat(false); fetchCategories(); fetchStats(); }
-      else { const d = await res.json(); alert(d.error); }
-    } catch (err) { alert('Failed'); }
+      else { const d = await res.json(); toast.error(d.error || 'Failed'); }
+    } catch (err) { toast.error('Operation failed'); }
   };
 
   const deleteCategory = async (name) => {
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
         setRetrainStatus(data);
         if (data.status !== 'training') { clearInterval(poll); setIsRetraining(false); }
       }, 2000);
-    } catch (err) { setIsRetraining(false); alert('Failed to start retraining'); }
+    } catch (err) { setIsRetraining(false); toast.error('Failed to start retraining'); }
   };
 
   const exportCSV = () => { window.open(`${API}/export/csv`, '_blank'); };
