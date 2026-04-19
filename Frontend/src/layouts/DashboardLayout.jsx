@@ -66,9 +66,12 @@ const DashboardLayout = ({ children }) => {
     }
 
     /* =====================================
-       OPERATIONS MANAGER
+       SUPPORT EXECUTIVE / QA TEAM
     ===================================== */
-    else if (role === 'operations_manager') {
+    else if (
+      role === 'operations_manager' || 
+      role === 'qa_team'
+    ) {
       items = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/audit-complaints', label: 'Audit Complaints', icon: SearchCheck },
@@ -77,10 +80,6 @@ const DashboardLayout = ({ children }) => {
         { path: '/resolution-review', label: 'Resolution Review', icon: FileBarChart2 }
       ];
     }
-
-    /* =====================================
-       SUPPORT EXECUTIVE
-    ===================================== */
     else if (role === 'executive' || role === 'support') {
       items = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
