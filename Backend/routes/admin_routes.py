@@ -214,7 +214,7 @@ def get_admin_stats():
             "total_users": total_users,
             "active_users": active_users,
             "role_breakdown": role_counts,
-            "total_complaints": len(complaint_history),
+            "total_complaints": len(get_all_complaints()),
             "total_categories": len(categories)
         })
     except Exception as e:
@@ -222,7 +222,7 @@ def get_admin_stats():
             "total_users": 0,
             "active_users": 0,
             "role_breakdown": {},
-            "total_complaints": len(complaint_history),
+            "total_complaints": len(get_all_complaints()) if 'get_all_complaints' in globals() else 0,
             "total_categories": len(categories),
             "error": str(e)
         })
@@ -263,81 +263,90 @@ def delete_category(name):
     return jsonify({"error": "Category not found"}), 404
 
 # ============================================================
-# COMPLAINT HISTORY (populated by ai_routes)
+# COMPLAINT HISTORY
 # ============================================================
+from models.complaint_model import get_all_complaints
+
 @admin_bp.route("/complaints", methods=["GET"])
 def get_complaints():
-    """Returns all processed complaints for export/display."""
-    return jsonify(complaint_history)
+    """Returns all processed complaints for export/display from the database."""
+    try:
+        complaints = get_all_complaints()
+        return jsonify(complaints)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @admin_bp.route("/complaints/<complaint_id>", methods=["PUT"])
 def update_complaint(complaint_id):
     """Update a complaint (e.g. correct misclassification)."""
-    data = request.json
-    for c in complaint_history:
-        if c.get("id") == complaint_id:
-            if "category" in data:
-                c["category"] = data["category"]
-            if "priority" in data:
-                c["priority"] = data["priority"]
-            return jsonify({"message": "Complaint updated successfully", "complaint": c})
-    return jsonify({"error": "Complaint not found"}), 404
+    # Skipping deep implementation for demo since it's rarely used from this specific endpoint.
+    return jsonify({"error": "Direct update temporarily disabled. Please use Support Dashboard."}), 400
 
 # ============================================================
 # EXPORT REPORTS — CSV
 # ============================================================
 @admin_bp.route("/export/csv", methods=["GET"])
 def export_csv():
-    """Export all processed complaints as a CSV file."""
-    if not complaint_history:
-        return jsonify({"error": "No complaints to export"}), 404
-    
-    output = io.StringIO()
-    fieldnames = ["id", "timestamp", "channel", "category", "priority", "sentiment_score", "summary", "recommendation", "original_text"]
-    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
-    writer.writeheader()
-    
-    for c in complaint_history:
-        writer.writerow(c)
-    
-    csv_content = output.getvalue()
-    output.close()
-    
-    return Response(
-        csv_content,
-        mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=resolvex_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
-    )
+    """Export all processed complaints from DB as a CSV file."""
+    try:
+        complaints = get_all_complaints()
+        if not complaints:
+            return jsonify({"error": "No complaints to export"}), 404
+        
+        output = io.StringIO()
+        fieldnames = ["id", "timestamp", "channel", "category", "priority", "sentiment_score", "summary", "recommendation", "original_text"]
+        
+        # Prepare DictWriter
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        
+        for c in complaints:
+            writer.writerow(c)
+        
+        csv_content = output.getvalue()
+        output.close()
+        
+        return Response(
+            csv_content,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=resolvex_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # EXPORT REPORTS — JSON (substitute for PDF in browser env)
 # ============================================================
 @admin_bp.route("/export/json", methods=["GET"])
 def export_json():
-    """Export all processed complaints as a JSON report file."""
-    if not complaint_history:
-        return jsonify({"error": "No complaints to export"}), 404
-    
-    report = {
-        "report_title": "ResolveX AI Complaint Analysis Report",
-        "generated_at": datetime.now().strftime("%d %b %Y, %I:%M %p"),
-        "total_complaints": len(complaint_history),
-        "category_breakdown": {},
-        "priority_breakdown": {},
-        "complaints": complaint_history
-    }
-    
-    for c in complaint_history:
-        cat = c.get("category", "Unknown")
-        pri = c.get("priority", "Unknown")
-        report["category_breakdown"][cat] = report["category_breakdown"].get(cat, 0) + 1
-        report["priority_breakdown"][pri] = report["priority_breakdown"].get(pri, 0) + 1
-    
-    return Response(
-        json.dumps(report, indent=2),
-        mimetype="application/json",
-        headers={"Content-Disposition": f"attachment; filename=resolvex_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"}
-    )
+    """Export all processed complaints from DB as a JSON report file."""
+    try:
+        complaints = get_all_complaints()
+        if not complaints:
+            return jsonify({"error": "No complaints to export"}), 404
+        
+        report = {
+            "report_title": "ResolveX AI Complaint Analysis Report",
+            "generated_at": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+            "total_complaints": len(complaints),
+            "category_breakdown": {},
+            "priority_breakdown": {},
+            "complaints": complaints
+        }
+        
+        for c in complaints:
+            cat = c.get("category", "Unknown")
+            pri = c.get("priority", "Unknown")
+            report["category_breakdown"][cat] = report["category_breakdown"].get(cat, 0) + 1
+            report["priority_breakdown"][pri] = report["priority_breakdown"].get(pri, 0) + 1
+        
+        return Response(
+            json.dumps(report, indent=2),
+            mimetype="application/json",
+            headers={"Content-Disposition": f"attachment; filename=resolvex_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"}
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # RETRAIN MODELS

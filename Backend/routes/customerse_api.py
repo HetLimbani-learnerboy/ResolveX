@@ -42,7 +42,7 @@ preprocessor = TextPreprocessor()
 # LLM Engine Setup
 # ============================================================
 def get_gemini_model():
-    api_key = os.getenv("GEMINI_API_KEY", "")
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("gemini_ai_key")
     if not api_key:
         return None
     genai.configure(api_key=api_key)
