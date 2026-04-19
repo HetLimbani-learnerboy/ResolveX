@@ -285,46 +285,48 @@ const SupportDashboard = () => {
       ══════════════════════════════════════════════════════ */}
       <div className="col-span-12">
         <div className="card" style={{ 
-          background: 'linear-gradient(135deg, rgba(30,30,42,0.9) 0%, rgba(15,15,22,1) 100%)', 
-          border: '1px solid rgba(129, 140, 248, 0.3)',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', 
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          boxShadow: '0 10px 40px rgba(99, 102, 241, 0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          borderRadius: '20px'
         }}>
-          {/* subtle background glow */}
-          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(129,140,248,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+          {/* subtle animated background glow */}
+          <div style={{ position: 'absolute', top: '-100px', right: '-50px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '-50px', left: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
-          <div className="card-header" style={{ borderBottomColor: 'rgba(255,255,255,0.05)' }}>
-            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff', fontSize: '1.1rem' }}>
-              <div style={{ padding: '6px', background: 'rgba(129,140,248,0.15)', borderRadius: '8px', display: 'flex' }}>
-                <Sparkles size={18} color="#818cf8" />
+          <div className="card-header" style={{ borderBottomColor: 'rgba(0,0,0,0.04)', padding: '1.25rem 1.5rem', background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(10px)', zIndex: 2, position: 'relative' }}>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)', fontSize: '1.15rem', fontWeight: 800 }}>
+              <div style={{ padding: '8px', background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%)', borderRadius: '10px', display: 'flex', border: '1px solid rgba(99,102,241,0.1)' }}>
+                <Sparkles size={20} color="var(--brand-primary)" />
               </div>
               Live AI Complaint Classification
             </h3>
             <button onClick={() => fetchTickets(true)} disabled={refreshing}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', transition: 'all 0.2s' }}
-              onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-              onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}>
-              <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
+              style={{ background: 'white', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', borderRadius: '10px', padding: '8px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
+              onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = 'var(--brand-primary)'; e.currentTarget.style.color = 'var(--brand-primary)'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
+              <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> Refresh
             </button>
           </div>
 
-          <div style={{ padding: '1.5rem', position: 'relative', zIndex: 1 }}>
-            <p style={{ color: '#aaa', marginBottom: '1.25rem', fontSize: '0.95rem' }}>
-              Paste a customer complaint from any channel. ResolveX Copilot will instantly classify, prioritize, and ingest it into the platform.
+          <div style={{ padding: '1.5rem 1.75rem.75rem', position: 'relative', zIndex: 1 }}>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.6', maxWidth: '800px' }}>
+              Paste a customer complaint from any channel. <strong style={{ color: 'var(--brand-primary)' }}>ResolveX Copilot</strong> will instantly classify, prioritize, and ingest it into the platform.
             </p>
 
             {/* Channel selector */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
               {['Email', 'Call', 'Chat'].map(ch => (
                 <button key={ch} onClick={() => setChannel(ch)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 18px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
-                    background: channel === ch ? 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' : 'rgba(255,255,255,0.03)',
-                    color:      channel === ch ? '#fff' : '#888',
-                    border:     channel === ch ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
-                    boxShadow:  channel === ch ? '0 4px 12px rgba(79, 70, 229, 0.3)' : 'none'
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 20px', borderRadius: '30px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: channel === ch ? 'linear-gradient(135deg, var(--brand-primary) 0%, rgba(99,102,241,0.9) 100%)' : 'white',
+                    color:      channel === ch ? 'white' : 'var(--text-secondary)',
+                    border:     channel === ch ? '1px solid transparent' : '1px solid var(--border-subtle)',
+                    boxShadow:  channel === ch ? '0 4px 15px rgba(99,102,241,0.3)' : '0 1px 3px rgba(0,0,0,0.02)'
                   }}>
-                  <ChannelIcon channel={ch} size={15} /> {ch}
+                  <ChannelIcon channel={ch} size={16} /> {ch}
                 </button>
               ))}
             </div>
@@ -340,21 +342,21 @@ const SupportDashboard = () => {
                 value={complaintText}
                 onChange={e => setComplaintText(e.target.value)}
                 rows={4}
-                style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', transition: 'border-color 0.3s, box-shadow 0.3s' }}
-                onFocus={e  => { e.target.style.borderColor = '#818cf8'; e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.15)'; }}
-                onBlur={e   => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }}
+                style={{ width: '100%', padding: '1.25rem', borderRadius: '14px', border: '2px solid var(--border-subtle)', background: 'rgba(255,255,255,0.8)', color: 'var(--text-primary)', resize: 'vertical', fontFamily: 'inherit', fontSize: '1rem', lineHeight: '1.6', outline: 'none', transition: 'all 0.3s', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' }}
+                onFocus={e  => { e.target.style.borderColor = 'var(--brand-primary)'; e.target.style.boxShadow = '0 0 0 4px rgba(99,102,241,0.1), inset 0 2px 4px rgba(0,0,0,0.01)'; e.target.style.background = 'white'; }}
+                onBlur={e   => { e.target.style.borderColor = 'var(--border-subtle)'; e.target.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.02)'; e.target.style.background = 'rgba(255,255,255,0.8)'; }}
               />
               <button onClick={handleClassifyAI} disabled={isAiLoading || !complaintText.trim()}
-                style={{ alignSelf: 'flex-end', padding: '0.8rem 1.5rem', borderRadius: '10px', background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', color: 'white', border: 'none', fontWeight: 600, fontSize: '0.95rem', cursor: (!complaintText.trim() || isAiLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: (!complaintText.trim() || isAiLoading) ? 0.6 : 1, transition: 'all 0.2s', boxShadow: (!complaintText.trim() || isAiLoading) ? 'none' : '0 6px 15px rgba(79, 70, 229, 0.4)' }}
-                onMouseOver={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(79, 70, 229, 0.5)'; } }}
-                onMouseOut={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(79, 70, 229, 0.4)'; } }}>
+                style={{ alignSelf: 'flex-end', padding: '0.9rem 1.75rem', borderRadius: '12px', background: 'linear-gradient(135deg, var(--brand-primary) 0%, rgba(99,102,241,0.9) 100%)', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.95rem', cursor: (!complaintText.trim() || isAiLoading) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: (!complaintText.trim() || isAiLoading) ? 0.6 : 1, transition: 'all 0.25s', boxShadow: (!complaintText.trim() || isAiLoading) ? 'none' : '0 8px 20px rgba(99,102,241,0.35)' }}
+                onMouseOver={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(99,102,241,0.45)'; } }}
+                onMouseOut={e => { if(!(!complaintText.trim() || isAiLoading)) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99,102,241,0.35)'; } }}>
                 {isAiLoading ? <><Loader2 size={18} className="animate-spin" /> Processing AI…</> : <><Sparkles size={18} /> Ingest via ResolveX Copilot</>}
               </button>
             </div>
 
             {aiError && (
-              <div style={{ marginTop: '0.75rem', padding: '0.7rem 1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#f87171', fontSize: '0.85rem' }}>
-                ⚠️ {aiError}
+              <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', color: '#ef4444', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={18} /> {aiError}
               </div>
             )}
           </div>
@@ -543,178 +545,209 @@ const SupportDashboard = () => {
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9998, animation: 'fadeIn 0.3s ease-out' }}
           />
 
-          {/* Drawer panel */}
+          {/* Centered Modal Dashboard */}
           <div style={{
-            position: 'fixed', top: 0, right: 0, height: '100vh', width: '500px', maxWidth: '90vw',
-            background: 'var(--bg-card)', borderLeft: '1px solid rgba(255,255,255,0.05)',
-            boxShadow: '-20px 0 50px rgba(0,0,0,0.5)', zIndex: 9999,
-            display: 'flex', flexDirection: 'column', overflowY: 'auto',
-            animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: '950px', maxWidth: '95vw', maxHeight: '90vh',
+            background: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(30px)', 
+            border: '1px solid rgba(255,255,255,1)',
+            boxShadow: '0 40px 100px rgba(0,0,0,0.15), 0 0 0 1px rgba(99,102,241,0.08)', zIndex: 9999,
+            display: 'flex', flexDirection: 'column', overflowY: 'hidden',
+            animation: 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            borderRadius: '24px'
           }}>
-            {/* Drawer header */}
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'rgba(var(--bg-card-rgb), 0.95)', backdropFilter: 'blur(10px)', zIndex: 10 }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
-                <div style={{ padding: '6px', background: 'rgba(99,102,241,0.1)', borderRadius: '8px', display: 'flex' }}>
-                  <Sparkles size={18} color="var(--brand-primary)" />
-                </div>
-                Ticket #{shortId(selectedTicket.id)}
-              </h3>
-              <button onClick={() => { setSelectedTicket(null); setActionMsg(''); }}
-                style={{ background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', color: 'var(--text-secondary)', display: 'flex', transition: 'all 0.2s' }}
-                onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-                <X size={18} />
-              </button>
+            {/* Modal header (Subject + Badges) */}
+            <div style={{ padding: '2rem 2.5rem', position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+               {/* Ambient Glows */}
+               <div style={{ position: 'absolute', top: '-50px', left: '-50px', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+               <div style={{ position: 'absolute', bottom: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+               
+               {/* Top Bar: Ticket ID + Close */}
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1, marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ padding: '6px', background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.05) 100%)', borderRadius: '8px', border: '1px solid rgba(99,102,241,0.1)' }}>
+                      <Sparkles size={16} color="var(--brand-primary)" />
+                    </div>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>TICKET #{shortId(selectedTicket.id)}</span>
+                  </div>
+                  <button onClick={() => { setSelectedTicket(null); setActionMsg(''); }}
+                    style={{ background: 'white', border: '1px solid var(--border-subtle)', cursor: 'pointer', padding: '8px', borderRadius: '50%', color: 'var(--text-secondary)', display: 'flex', transition: 'all 0.2s', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.transform = 'rotate(90deg)' }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.transform = 'rotate(0)' }}>
+                    <X size={16} />
+                  </button>
+               </div>
+
+               {/* Subject Line & Badges Side-By-Side */}
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 1, gap: '2rem' }}>
+                 <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0', lineHeight: 1.2, letterSpacing: '-0.5px', flex: 1 }}>
+                   {selectedTicket.subject || 'No Subject Provided'}
+                 </h2>
+
+                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0 }}>
+                    <PriorityBadge priority={selectedTicket.priority} />
+                    <StatusBadge   status={selectedTicket.status} />
+                    {selectedTicket.complaint_source && (
+                      <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(52,211,153,0.1) 100%)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <ChannelIcon channel={selectedTicket.complaint_source} size={12} />
+                        {selectedTicket.complaint_source}
+                      </span>
+                    )}
+                 </div>
+               </div>
             </div>
 
-            {/* Drawer body */}
-            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
-
-              {/* Title + badges */}
-              <div style={{ background: 'linear-gradient(145deg, var(--bg-secondary) 0%, rgba(30,30,40,0) 100%)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  {selectedTicket.subject || '—'}
-                </h4>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <PriorityBadge priority={selectedTicket.priority} />
-                  <StatusBadge   status={selectedTicket.status} />
-                  {selectedTicket.complaint_source && (
-                    <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, background: 'rgba(100,200,100,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.25)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <ChannelIcon channel={selectedTicket.complaint_source} size={11} />
-                      {selectedTicket.complaint_source}
-                    </span>
+            {/* Modal Body - 2 Columns */}
+            <div style={{ padding: '2rem 2.5rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '2.5rem', flex: 1, overflowY: 'auto', background: 'linear-gradient(to bottom, rgba(248,250,252,0) 0%, rgba(248,250,252,0.8) 100%)' }}>
+               
+               {/* ── LEFT COLUMN: Context & Controls ── */}
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                  {/* ORIGINAL COMPLAINT */}
+                  {selectedTicket.complaint_text && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Eye size={14} color="var(--text-muted)" />
+                        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.7px', color: 'var(--text-muted)', fontWeight: 700 }}>Original Customer Payload</span>
+                      </div>
+                      <div style={{ padding: '1.5rem', background: 'white', borderRadius: '16px', border: '1px solid var(--border-subtle)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)', fontSize: '0.95rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', color: 'var(--text-secondary)', fontFamily: 'system-ui, sans-serif' }}>
+                        {selectedTicket.complaint_text}
+                      </div>
+                    </div>
                   )}
-                </div>
-              </div>
 
-              {/* ── FEATURE 1: Auto Classified Category ── */}
-              <Section icon={<Sparkles size={14} color="#818cf8" />} title="Auto Classified Category">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {selectedTicket.category || '—'}
+                  {/* OPERATIONAL CONTROLS */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <RefreshCw size={14} color="var(--text-muted)" />
+                      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.7px', color: 'var(--text-muted)', fontWeight: 700 }}>Manual Status Override</span>
+                    </div>
+                    {/* Fixed Overflow: Used Flex Wrap instead of hard Grid */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', background: 'white', padding: '0.75rem', borderRadius: '16px', border: '1px solid var(--border-subtle)', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                      {VALID_STATUSES.map(s => {
+                        const m       = STATUS_META[s] || STATUS_META.Open;
+                        const active  = selectedTicket.status === s;
+                        return (
+                          <button key={s} onClick={() => handleUpdateStatus(s)}
+                            disabled={updatingStatus || active}
+                            style={{
+                              flex: '1 1 auto', padding: '10px 14px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600, cursor: active ? 'default' : 'pointer',
+                              background: active ? m.bg : 'var(--bg-secondary)',
+                              color: active ? m.color : 'var(--text-muted)',
+                              border: `1px solid ${active ? m.color + '40' : 'transparent'}`,
+                              transition: 'all 0.2s', whiteSpace: 'nowrap',
+                              opacity: updatingStatus && !active ? 0.5 : 1,
+                              boxShadow: active ? `0 2px 8px ${m.color}30` : 'none'
+                            }}
+                            onMouseOver={e => { if (!active) { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
+                            onMouseOut={e  => { if (!active) { e.currentTarget.style.background = 'var(--bg-secondary)'; e.currentTarget.style.color = 'var(--text-muted)'; } }}>
+                            {updatingStatus && !active ? '…' : s}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '3px 8px', background: 'rgba(129,140,248,0.1)', borderRadius: '6px', border: '1px solid rgba(129,140,248,0.2)' }}>
-                    AI Confidence: {selectedTicket.ai_confidence != null ? `${selectedTicket.ai_confidence}%` : '—'}
-                  </div>
-                </div>
-              </Section>
+                  
+                  {/* Action feedback message */}
+                  {actionMsg && (
+                    <div style={{ padding: '1rem 1.25rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px',
+                      background: actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                      color:      actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? '#059669' : '#e11d48',
+                      border: `1px solid ${actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                      boxShadow: `0 4px 15px ${actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}`
+                    }}>
+                      {actionMsg}
+                    </div>
+                  )}
+               </div>
 
-              {/* ── FEATURE 2: Assigned Priority ── */}
-              <Section icon={<Shield size={14} color={(PRIORITY_META[selectedTicket.priority] || PRIORITY_META.None).color} />} title="Assigned Priority">
-                <div style={{ display: 'flex', align: 'center', gap: '10px' }}>
-                  <PriorityBadge priority={selectedTicket.priority} />
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', alignSelf: 'center' }}>
-                    {selectedTicket.priority === 'Critical' && 'Immediate action required.'}
-                    {selectedTicket.priority === 'High'     && 'Address within 4 hours.'}
-                    {selectedTicket.priority === 'Medium'   && 'Address within 24 hours.'}
-                    {selectedTicket.priority === 'Low'      && 'Address within 3 days.'}
-                    {selectedTicket.priority === 'None'     && 'Invalid/spam — no action.'}
-                  </span>
-                </div>
-              </Section>
+               {/* ── RIGHT COLUMN: AI Intelligence ── */}
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {/* INTELLIGENCE HUB */}
+                  <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--border-subtle)', boxShadow: '0 10px 30px rgba(0,0,0,0.04)', padding: '1.75rem', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, var(--brand-primary) 0%, #a855f7 100%)' }} />
+                    
+                    {/* Hub Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
+                      <Sparkles size={18} color="#8b5cf6" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '1px' }}>ResolveX Copilot Insight</span>
+                    </div>
 
-              {/* ── FEATURE 3: AI Suggested Resolution ── */}
-              <Section icon={<Zap size={14} color="#fbbf24" />} title="AI Suggested Resolution">
-                <div style={{ padding: '0.85rem 1rem', background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '10px', fontSize: '0.87rem', lineHeight: 1.6, color: 'var(--text-primary)' }}>
-                  <strong style={{ color: '#fbbf24' }}>Copilot: </strong>
-                  {selectedTicket.recommended_action || 'No recommendation available.'}
-                </div>
+                    {/* AI Meta (Category + Priority) */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px dashed var(--border-subtle)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Classified Category</div>
+                        <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {selectedTicket.category || '—'}
+                          <span style={{ fontSize: '0.7rem', padding: '3px 8px', background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', borderRadius: '10px' }}>
+                            {selectedTicket.ai_confidence != null ? `${selectedTicket.ai_confidence}% Match` : ''}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>Assigned Protocol</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          {selectedTicket.priority === 'Critical' && <span style={{color:'#ef4444', fontWeight:800}}>Immediate.</span>}
+                          {selectedTicket.priority === 'High'     && 'Address < 4 hours.'}
+                          {selectedTicket.priority === 'Medium'   && 'Address < 24 hours.'}
+                          {selectedTicket.priority === 'Low'      && 'Standard Queue.'}
+                          {selectedTicket.priority === 'None'     && 'No action needed.'}
+                        </div>
+                      </div>
+                    </div>
 
-                {/* Follow AI Resolution Button */}
-                {selectedTicket.recommended_action && selectedTicket.status === 'Open' && (
-                  <button onClick={handleFollowAi} disabled={followingAi}
-                    style={{ width: '100%', marginTop: '0.75rem', padding: '0.75rem', borderRadius: '10px', border: '2px solid rgba(129,140,248,0.5)', background: 'linear-gradient(135deg, rgba(129,140,248,0.08) 0%, rgba(99,102,241,0.12) 100%)', color: '#818cf8', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
-                    onMouseOver={e => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(129,140,248,0.15) 0%, rgba(99,102,241,0.2) 100%)'; e.currentTarget.style.borderColor = '#818cf8'; }}
-                    onMouseOut={e => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(129,140,248,0.08) 0%, rgba(99,102,241,0.12) 100%)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.5)'; }}>
-                    {followingAi
-                      ? <><Loader2 size={15} className="animate-spin" /> Applying…</>
-                      : <><Sparkles size={15} /> Follow AI Resolution</>}
-                  </button>
-                )}
-                {selectedTicket.status !== 'Open' && selectedTicket.status !== 'Escalated' && (
-                  <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <CheckCircle2 size={12} /> AI recommendation acknowledged — ticket is {selectedTicket.status}.
-                  </div>
-                )}
-              </Section>
+                    {/* AI Recommendation Box */}
+                    {selectedTicket.recommended_action ? (
+                      <div style={{ padding: '1.25rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(245,158,11,0.01) 100%)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '14px', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                          <Zap size={14} color="#d97706" />
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Suggested Action</span>
+                        </div>
+                        <div style={{ fontSize: '0.95rem', lineHeight: 1.6, color: 'var(--text-primary)', fontWeight: 500 }}>
+                          {selectedTicket.recommended_action}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '1.25rem', background: 'var(--bg-secondary)', border: '1px dashed var(--border-subtle)', borderRadius: '14px', marginBottom: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        No automated recommendation available. Manual review required.
+                      </div>
+                    )}
 
-              {/* Original complaint text */}
-              {selectedTicket.complaint_text && (
-                <Section icon={<Eye size={14} color="var(--text-muted)" />} title="Original Complaint">
-                  <div style={{ maxHeight: '130px', overflowY: 'auto', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-subtle)', fontSize: '0.83rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', color: 'var(--text-secondary)' }}>
-                    {selectedTicket.complaint_text}
-                  </div>
-                </Section>
-              )}
-
-              {/* AI Metrics row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <MetricBox label="Sentiment Score" value={
-                  selectedTicket.sentiment_score != null
-                    ? selectedTicket.sentiment_score
-                    : '—'
-                } valueColor={
-                  selectedTicket.sentiment_score < -0.3 ? '#f87171'
-                  : selectedTicket.sentiment_score > 0.2  ? '#34d399'
-                  : '#fbbf24'
-                } />
-                <MetricBox label="Submitted" value={fmtDate(selectedTicket.created_at)} />
-              </div>
-
-              {/* ── FEATURE 4: Update Status ── */}
-              <Section icon={<RefreshCw size={14} color="#60a5fa" />} title="Update Status">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.5rem' }}>
-                  {VALID_STATUSES.map(s => {
-                    const m       = STATUS_META[s] || STATUS_META.Open;
-                    const active  = selectedTicket.status === s;
-                    return (
-                      <button key={s} onClick={() => handleUpdateStatus(s)}
-                        disabled={updatingStatus || active}
-                        style={{
-                          padding: '7px 4px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 600, cursor: active ? 'default' : 'pointer',
-                          border: `1px solid ${active ? m.color : 'var(--border-subtle)'}`,
-                          background: active ? m.bg : 'transparent',
-                          color: active ? m.color : 'var(--text-muted)',
-                          transition: 'all 0.15s', whiteSpace: 'nowrap',
-                          opacity: updatingStatus && !active ? 0.5 : 1,
-                        }}
-                        onMouseOver={e => { if (!active) e.currentTarget.style.background = m.bg; }}
-                        onMouseOut={e  => { if (!active) e.currentTarget.style.background = 'transparent'; }}>
-                        {updatingStatus && !active ? '…' : s}
+                    {/* Follow AI Resolution Button */}
+                    {selectedTicket.recommended_action && selectedTicket.status === 'Open' && (
+                      <button onClick={handleFollowAi} disabled={followingAi}
+                        style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, var(--brand-primary) 0%, #a855f7 100%)', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', boxShadow: '0 8px 25px rgba(99,102,241,0.3)' }}
+                        onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(99,102,241,0.4)'; }}
+                        onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(99,102,241,0.3)'; }}>
+                        {followingAi
+                          ? <><Loader2 size={18} className="animate-spin" /> Applying Intelligence…</>
+                          : <><Sparkles size={18} /> Execute AI Resolution</>}
                       </button>
-                    );
-                  })}
-                </div>
-              </Section>
-
-              {/* ── FEATURE 5: Escalate Critical ── */}
-              <Section icon={<AlertTriangle size={14} color="#ef4444" />} title="Escalate Complaint">
-                {selectedTicket.status === 'Escalated' && selectedTicket.priority === 'Critical' ? (
-                  <div style={{ padding: '0.75rem 1rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', fontSize: '0.82rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertTriangle size={14} /> This complaint is already escalated as Critical.
+                    )}
+                    {selectedTicket.status !== 'Open' && selectedTicket.status !== 'Escalated' && (
+                      <div style={{ padding: '0.85rem', borderRadius: '12px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)', fontSize: '0.85rem', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}>
+                        <CheckCircle2 size={16} /> Resolution applied properly.
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <button onClick={handleEscalate} disabled={escalating}
-                    style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '2px solid rgba(239,68,68,0.5)', background: 'rgba(239,68,68,0.07)', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
-                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.14)'; e.currentTarget.style.borderColor = '#ef4444'; }}
-                    onMouseOut={e  => { e.currentTarget.style.background = 'rgba(239,68,68,0.07)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}>
-                    {escalating
-                      ? <><Loader2 size={15} className="animate-spin" /> Escalating…</>
-                      : <><AlertTriangle size={15} /> Escalate to Critical</>}
-                  </button>
-                )}
-              </Section>
 
-              {/* Action feedback message */}
-              {actionMsg && (
-                <div style={{ padding: '0.7rem 1rem', borderRadius: '8px', fontSize: '0.83rem', fontWeight: 500,
-                  background: actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
-                  color:      actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? '#34d399' : '#f87171',
-                  border: `1px solid ${actionMsg.startsWith('✅') || actionMsg.startsWith('🚨') ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
-                }}>
-                  {actionMsg}
-                </div>
-              )}
+                  {/* ESCALATION BLOCK */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                     {selectedTicket.status === 'Escalated' && selectedTicket.priority === 'Critical' ? (
+                       <div style={{ height: '52px', padding: '0 1rem', background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '14px', fontSize: '0.85rem', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600 }}>
+                         <AlertTriangle size={16} /> Complaint is flagged Critical
+                       </div>
+                     ) : (
+                       <button onClick={handleEscalate} disabled={escalating}
+                         style={{ height: '52px', padding: '0 1.25rem', borderRadius: '14px', border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.02)', color: '#ef4444', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', boxShadow: '0 4px 10px rgba(239,68,68,0.05)' }}
+                         onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                         onMouseOut={e  => { e.currentTarget.style.background = 'rgba(239,68,68,0.02)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; e.currentTarget.style.transform = 'translateY(0)' }}>
+                         {escalating
+                           ? <><Loader2 size={16} className="animate-spin" /></>
+                           : <><AlertTriangle size={16} /> Escalate to Critical Level</>}
+                       </button>
+                     )}
+                  </div>
+               </div>
             </div>
           </div>
         </>
@@ -735,9 +768,9 @@ const Section = ({ icon, title, children }) => (
 );
 
 const MetricBox = ({ label, value, valueColor }) => (
-  <div style={{ padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
-    <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '4px' }}>{label}</div>
-    <div style={{ fontSize: '1rem', fontWeight: 700, color: valueColor || 'var(--text-primary)' }}>{value}</div>
+  <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>{label}</div>
+    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: valueColor || 'var(--text-primary)' }}>{value}</div>
   </div>
 );
 
