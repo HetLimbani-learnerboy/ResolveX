@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const QADashboard = () => {
-  const trendData = [
+  const [trendData, setTrendData] = React.useState([
     { name: 'Mon', bugs: 12, billing: 5 },
     { name: 'Tue', bugs: 19, billing: 6 },
     { name: 'Wed', bugs: 15, billing: 8 },
@@ -24,25 +24,33 @@ const QADashboard = () => {
     { name: 'Fri', bugs: 8, billing: 3 },
     { name: 'Sat', bugs: 5, billing: 2 },
     { name: 'Sun', bugs: 6, billing: 2 }
-  ];
+  ]);
+  const [stats, setStats] = React.useState(null);
+  const [recurrenceData, setRecurrenceData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
 
-  const issues = [
-    {
-      issue: 'Payment Gateway Timeout',
-      count: 42,
-      severity: 'High'
-    },
-    {
-      issue: 'Reset Password Email Delay',
-      count: 28,
-      severity: 'Medium'
-    },
-    {
-      issue: 'Dashboard Loading Slow',
-      count: 15,
-      severity: 'Medium'
-    }
-  ];
+  React.useEffect(() => {
+    Promise.all([
+      fetch(`${BACKEND_URL}/api/admin/stats`).then(res => res.json()),
+      fetch(`${BACKEND_URL}/api/admin/recurring-issues`).then(res => res.json())
+    ])
+      .then(([statsInfo, recurringInfo]) => {
+        setStats(statsInfo);
+        setRecurrenceData(recurringInfo);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("QA Dashboard Fetch Error:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const issues = recurrenceData?.clusters?.slice(0, 3).map(cluster => ({
+    issue: cluster.topic,
+    count: cluster.count,
+    severity: cluster.count > 5 ? 'High' : 'Medium'
+  })) || [];
 
   return (
     <div className="dashboard-grid">
@@ -110,11 +118,11 @@ const QADashboard = () => {
           </div>
 
           <div className="stat-value">
-            12
+            {recurrenceData?.similar_complaints || 0}
           </div>
 
           <div className="stat-label">
-            Flagged this week
+            {stats?.recurrence_score || 0}% Score
           </div>
         </div>
       </div>

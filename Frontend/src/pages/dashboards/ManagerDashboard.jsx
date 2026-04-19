@@ -4,22 +4,26 @@ import { Activity, Clock, ShieldAlert, Loader2, AlertCircle } from 'lucide-react
 
 const ManagerDashboard = () => {
   const [complaints, setComplaints] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [recurrenceData, setRecurrenceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/complaints/all`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch complaints');
-        return res.json();
-      })
-      .then(data => {
-        setComplaints(Array.isArray(data) ? data : []);
+    Promise.all([
+      fetch(`${BACKEND_URL}/api/complaints/all`).then(res => res.json()),
+      fetch(`${BACKEND_URL}/api/admin/stats`).then(res => res.json()),
+      fetch(`${BACKEND_URL}/api/admin/recurring-issues`).then(res => res.json())
+    ])
+      .then(([complaintsData, statsData, recurringData]) => {
+        setComplaints(Array.isArray(complaintsData) ? complaintsData : []);
+        setStats(statsData);
+        setRecurrenceData(recurringData);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch complaints data", err);
+        console.error("Failed to fetch manager dashboard data", err);
         setError(err.message);
         setLoading(false);
       });
@@ -93,40 +97,33 @@ const ManagerDashboard = () => {
       </div>
 
       {/* Stats Row */}
-      <div className="col-span-3">
-        <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(37,99,235,0.05) 100%)', borderLeft: '4px solid var(--brand-primary)' }}>
-          <div className="card-header border-none">
-            <h3 className="card-title" style={{ fontSize: '0.95rem' }}><Activity size={18} color="var(--brand-primary)" /> Total Tickets</h3>
+      <div className="col-span-12">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 'var(--space-6)' }}>
+          <div className="card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(37,99,235,0.05) 100%)', borderLeft: '4px solid var(--brand-primary)' }}>
+            <h3 className="card-title" style={{ fontSize: '0.85rem' }}><Activity size={16} color="var(--brand-primary)" /> Total Tickets</h3>
+            <div className="stat-value text-gradient" style={{ fontSize: '2rem', marginTop: '0.5rem' }}>{totalTickets}</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>All complaints</div>
           </div>
-          <div className="stat-value text-gradient" style={{ fontSize: '2.5rem', marginTop: '0.5rem' }}>{totalTickets}</div>
-          <div className="stat-label" style={{ marginTop: '0.25rem' }}>All complaints in system</div>
-        </div>
-      </div>
-      <div className="col-span-3">
-        <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(245,158,11,0.05) 100%)', borderLeft: '4px solid #f59e0b' }}>
-          <div className="card-header border-none">
-            <h3 className="card-title" style={{ fontSize: '0.95rem' }}><Clock size={18} color="#f59e0b" /> Open / Active</h3>
+          <div className="card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(245,158,11,0.05) 100%)', borderLeft: '4px solid #f59e0b' }}>
+            <h3 className="card-title" style={{ fontSize: '0.85rem' }}><Clock size={16} color="#f59e0b" /> Open</h3>
+            <div className="stat-value" style={{ fontSize: '2rem', marginTop: '0.5rem', color: '#f59e0b' }}>{openTickets}</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>Awaiting resolution</div>
           </div>
-          <div className="stat-value" style={{ fontSize: '2.5rem', marginTop: '0.5rem', color: '#f59e0b' }}>{openTickets}</div>
-          <div className="stat-label" style={{ marginTop: '0.25rem' }}>Awaiting resolution</div>
-        </div>
-      </div>
-      <div className="col-span-3">
-        <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(16,185,129,0.05) 100%)', borderLeft: '4px solid #10b981' }}>
-          <div className="card-header border-none">
-            <h3 className="card-title" style={{ fontSize: '0.95rem' }}><ShieldAlert size={18} color="#10b981" /> Resolved</h3>
+          <div className="card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(16,185,129,0.05) 100%)', borderLeft: '4px solid #10b981' }}>
+            <h3 className="card-title" style={{ fontSize: '0.85rem' }}><ShieldAlert size={16} color="#10b981" /> Resolved</h3>
+            <div className="stat-value" style={{ fontSize: '2rem', marginTop: '0.5rem', color: '#10b981' }}>{resolvedTickets}</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>Successfully closed</div>
           </div>
-          <div className="stat-value" style={{ fontSize: '2.5rem', marginTop: '0.5rem', color: '#10b981' }}>{resolvedTickets}</div>
-          <div className="stat-label" style={{ marginTop: '0.25rem' }}>Successfully closed</div>
-        </div>
-      </div>
-      <div className="col-span-3">
-        <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(99,102,241,0.05) 100%)', borderLeft: '4px solid #6366f1' }}>
-          <div className="card-header border-none">
-            <h3 className="card-title" style={{ fontSize: '0.95rem' }}><ShieldAlert size={18} color="#6366f1" /> Avg AI Score</h3>
+          <div className="card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(99,102,241,0.05) 100%)', borderLeft: '4px solid #6366f1' }}>
+            <h3 className="card-title" style={{ fontSize: '0.85rem' }}><Activity size={16} color="#6366f1" /> AI Conf.</h3>
+            <div className="stat-value" style={{ fontSize: '2rem', marginTop: '0.5rem', color: '#6366f1' }}>{avgConfidence}%</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>Classification accuracy</div>
           </div>
-          <div className="stat-value" style={{ fontSize: '2.5rem', marginTop: '0.5rem', color: '#6366f1' }}>{avgConfidence}%</div>
-          <div className="stat-label" style={{ marginTop: '0.25rem' }}>Classification accuracy</div>
+          <div className="card" style={{ padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(244,63,94,0.05) 100%)', borderLeft: '4px solid #f43f5e' }}>
+            <h3 className="card-title" style={{ fontSize: '0.85rem' }}><Activity size={16} color="#f43f5e" /> Recurrence</h3>
+            <div className="stat-value" style={{ fontSize: '2rem', marginTop: '0.5rem', color: '#f43f5e' }}>{stats?.recurrence_score || 0}%</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>Systemic risk score</div>
+          </div>
         </div>
       </div>
 
@@ -182,6 +179,35 @@ const ManagerDashboard = () => {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Systemic Issues Summary Section */}
+      <div className="col-span-12">
+        <div className="card">
+          <div className="card-header" style={{ paddingBottom: '1rem', borderBottom: '1px solid var(--border-subtle)' }}>
+              <h3 className="card-title" style={{ fontSize: '1.1rem' }}>Top Systemic Issues (Recurring Clusters)</h3>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Top {Math.min(recurrenceData?.clusters?.length || 0, 3)} intelligence clusters</span>
+          </div>
+          <div style={{ padding: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+              {recurrenceData?.clusters?.slice(0, 3).map((cluster, i) => (
+                <div key={i} style={{ padding: '1rem', borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-strong)' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>{cluster.category}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.75rem', height: '2.4rem', overflow: 'hidden' }}>{cluster.topic}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>{cluster.count} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>tickets</span></span>
+                    <div style={{ width: '60px', height: '6px', background: 'var(--border-strong)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${(cluster.count / totalTickets) * 100}%`, background: cluster.count > 5 ? '#ef4444' : '#f59e0b' }}></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(!recurrenceData?.clusters || recurrenceData.clusters.length === 0) && (
+                <div className="col-span-3" style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>No intelligence clusters detected.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
