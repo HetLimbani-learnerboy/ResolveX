@@ -66,11 +66,10 @@ const DashboardLayout = ({ children }) => {
     }
 
     /* =====================================
-       SUPPORT EXECUTIVE / QA TEAM
+       OPERATIONS MANAGER
     ===================================== */
     else if (
-      role === 'operations_manager' || 
-      role === 'qa_team'
+      role === 'operations_manager'
     ) {
       items = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -80,6 +79,20 @@ const DashboardLayout = ({ children }) => {
         { path: '/resolution-review', label: 'Resolution Review', icon: FileBarChart2 }
       ];
     }
+    /* =====================================
+       QA TEAM
+    ===================================== */
+    else if (role === 'qa_team') {
+      items = [
+        { path: '/qa-dashboard', label: 'QA Dashboard', icon: LayoutDashboard },
+        { path: '/misclassifications', label: 'Misclassifications', icon: AlertTriangle },
+        { path: '/recurring-issues', label: 'Recurring Issues', icon: MessageSquareText },
+        { path: '/qa-feedback', label: 'User Feedback', icon: MessageSquare }
+      ];
+    }
+    /* =====================================
+       SUPPORT EXECUTIVE
+    ===================================== */
     else if (role === 'executive' || role === 'support') {
       items = [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
@@ -96,17 +109,7 @@ const DashboardLayout = ({ children }) => {
       ];
     }
 
-    /* =====================================
-       QA TEAM
-    ===================================== */
-    else if (role === 'qa_team') {
-      items = [
-        { path: '/qa-dashboard', label: 'QA Dashboard', icon: LayoutDashboard },
-        { path: '/misclassifications', label: 'Misclassifications', icon: AlertTriangle },
-        { path: '/recurring-issues', label: 'Recurring Issues', icon: MessageSquareText },
-        { path: '/qa-feedback', label: 'User Feedback', icon: MessageSquare }
-      ];
-    }
+
 
     /* =====================================
        DEFAULT
