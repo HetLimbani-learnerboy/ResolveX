@@ -120,26 +120,39 @@ const SupportDashboard = () => {
 
   // ── AI Process & Save ─────────────────────────────────────────────────────
   const handleClassifyAI = async () => {
-    if (!complaintText.trim()) return;
-    setIsAiLoading(true);
-    setAiError('');
-    try {
-      const res  = await fetch(`${BACKEND_URL}/api/customerse/process_complaint`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ text: complaintText, channel }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'AI processing failed');
-      setComplaintText('');
-      // Refresh list so the saved ticket appears at top
-      await fetchTickets(true);
-    } catch (err) {
-      setAiError(err.message || 'Failed to reach AI backend.');
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
+  if (!complaintText.trim()) return;
+  setIsAiLoading(true);
+  setAiError('');
+  
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/customerse/process_complaint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        text: complaintText, 
+        channel: channel 
+      }),
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) throw new Error(data.error || 'AI processing failed');
+
+    // Success logic
+    setComplaintText('');
+    
+    // Show a small success toast/feedback
+    setActionMsg(`✅ Ticket #${data.ticket_id.substring(0,8)} ingested and classified as ${data.data.category}`);
+    
+    // Refresh the list to show the new ticket with AI suggestions at the top
+    await fetchTickets(true);
+    
+  } catch (err) {
+    setAiError(err.message || 'Failed to reach AI backend.');
+  } finally {
+    setIsAiLoading(false);
+  }
+};
 
   // ── Update Status ─────────────────────────────────────────────────────────
   const handleUpdateStatus = async (newStatus) => {
