@@ -51,9 +51,9 @@ def init_db():
             create_complaint_table()
             create_history_table()
             create_feedback_table()
-            print("✅ Database tables initialized successfully.")
+            print("[SUCCESS] Database tables initialized successfully.")
         except Exception as e:
-            print(f"❌ Database Init Error: {e}")
+            print(f"[ERROR] Database Init Error: {e}")
             print("Ensure PostgreSQL is running and your .env DATABASE_URL is correct.")
 
 # Run DB init

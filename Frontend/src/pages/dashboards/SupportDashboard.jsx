@@ -69,6 +69,96 @@ const fmtDate  = (iso) => {
   return new Date(iso).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
 };
 
+const TimeRemaining = ({ deadline }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  const calculate = useCallback(() => {
+    if (!deadline) return "—";
+    const now = new Date();
+    const target = new Date(deadline);
+    const diff = target - now;
+    if (diff <= 0) return "EXPIRED";
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }, [deadline]);
+
+  useEffect(() => {
+    setTimeLeft(calculate());
+    const timer = setInterval(() => setTimeLeft(calculate()), 1000);
+    return () => clearInterval(timer);
+  }, [calculate]);
+
+  if (timeLeft === '—') return <span>—</span>;
+  const isExpired = timeLeft === "EXPIRED";
+  
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <Clock size={12} color={isExpired ? "#ef4444" : "#6366f1"} />
+      <span style={{ 
+        color: isExpired ? '#ef4444' : 'var(--text-primary)',
+        fontWeight: isExpired ? 800 : 700,
+        fontFamily: 'SFMono-Regular, Consolas, monospace',
+        fontSize: '0.78rem'
+      }}>
+        {timeLeft}
+      </span>
+    </div>
+  );
+};
+
+const DynamicSLAScore = ({ createdAt, deadline, priority, initialScore }) => {
+  const [data, setData] = useState({ score: initialScore, status: 'Calculating...' });
+
+  const calculate = useCallback(() => {
+    if (!createdAt || !deadline) return { score: initialScore, status: 'No SLA' };
+    
+    const start = new Date(createdAt);
+    const end = new Date(deadline);
+    const now = new Date();
+    
+    const total = end - start;
+    const remaining = end - now;
+    
+    if (remaining <= 0) return { score: 0.00, status: 'Breached' };
+    
+    let base = (remaining / total) * 100;
+    base = Math.min(100, Math.max(0, base));
+    
+    let weight = 1.0;
+    const p = (priority || '').toLowerCase();
+    if (p === 'high' || p === 'critical') weight = 1.5;
+    else if (p === 'medium') weight = 1.2;
+    
+    let final = base * weight;
+    final = Math.min(100, final);
+    
+    let stat = "On Track";
+    if (final <= 30) stat = "Breached";
+    else if (final <= 70) stat = "At Risk";
+    
+    return { score: final.toFixed(2), status: stat };
+  }, [createdAt, deadline, priority, initialScore]);
+
+  useEffect(() => {
+    setData(calculate());
+    const timer = setInterval(() => {
+      setData(calculate());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [calculate]);
+
+  const color = data.status === 'Breached' ? '#ef4444' : data.status === 'At Risk' ? '#f59e0b' : '#10b981';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: color, fontFamily: 'monospace' }}>{data.score}/100</span>
+      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{data.status}</span>
+    </div>
+  );
+};
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 const SupportDashboard = () => {
   // ── State ─────────────────────────────────────────────────────────────────
@@ -85,6 +175,7 @@ const SupportDashboard = () => {
   const [channel,         setChannel]         = useState('Email');
   const [isAiLoading,     setIsAiLoading]     = useState(false);
   const [aiError,         setAiError]         = useState('');
+  const [lastBreach,      setLastBreach]      = useState(null); // For escalation alerts
 
   // Drawer actions
   const [updatingStatus,  setUpdatingStatus]  = useState(false);
@@ -99,7 +190,22 @@ const SupportDashboard = () => {
     try {
       const res  = await fetch(`${BACKEND_URL}/api/complaints/all`);
       const data = await res.json();
-      setTickets(Array.isArray(data) ? data : []);
+      const freshTickets = Array.isArray(data) ? data : [];
+      
+      // Check for newly escalated tickets (Breach Alert)
+      if (tickets.length > 0) {
+        const newlyEscalated = freshTickets.find(newT => {
+          const oldT = tickets.find(t => t.id === newT.id);
+          return oldT && oldT.status !== 'Escalated' && newT.status === 'Escalated';
+        });
+        if (newlyEscalated) {
+             setLastBreach(newlyEscalated);
+             // Auto-clear after 10 seconds
+             setTimeout(() => setLastBreach(null), 10000);
+        }
+      }
+
+      setTickets(freshTickets);
     } catch (err) {
       console.error('fetchTickets error:', err);
     } finally {
@@ -259,6 +365,35 @@ const SupportDashboard = () => {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard-grid" style={{ position: 'relative' }}>
+      
+      {/* 🚨 ESCALATION ALERT OVERLAY 🚨 */}
+      {lastBreach && (
+        <div style={{
+          position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10000, width: '450px', maxWidth: '90vw',
+          background: 'rgba(239, 68, 68, 0.95)', backdropFilter: 'blur(10px)',
+          border: '2px solid rgba(255,255,255,0.2)', borderRadius: '16px',
+          boxShadow: '0 20px 50px rgba(239,68,68,0.4)', color: 'white',
+          padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '16px',
+          animation: 'slideInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <div style={{
+            background: 'white', color: '#ef4444', borderRadius: '50%',
+            padding: '10px', display: 'flex', animation: 'pulse 1s infinite'
+          }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '0.5px' }}>SLA BREACH DETECTED</div>
+            <div style={{ fontSize: '0.85rem', opacity: 0.9, marginTop: '2px' }}>
+              Ticket <strong>#{lastBreach.id.substring(0,8)}</strong> has been auto-escalated to Critical.
+            </div>
+          </div>
+          <button onClick={() => setLastBreach(null)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.7 }}>
+            <X size={20} />
+          </button>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════
           STATS ROW
@@ -437,6 +572,13 @@ const SupportDashboard = () => {
                 />
               </div>
 
+              <button onClick={() => fetchTickets(true)} disabled={refreshing}
+                style={{ background: 'var(--brand-primary)', border: 'none', color: 'white', borderRadius: '10px', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
+                onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 15px rgba(37,99,235,0.3)'; }}
+                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.2)'; }}>
+                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh SLA
+              </button>
+
               {/* Priority filter */}
               <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
                 style={{ padding: '8px 12px', border: '1px solid var(--border-subtle)', borderRadius: '10px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s', fontWeight: 500 }}
@@ -461,7 +603,7 @@ const SupportDashboard = () => {
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
               <thead>
                 <tr>
-                  {['Ticket ID', 'Channel', 'Subject', 'Category (AI)', 'Priority', 'Status', 'SLA Score', 'Copilot Action'].map(h => (
+                  {['Ticket ID', 'Channel', 'Subject', 'Category', 'Priority', 'Status', 'SLA Score', 'Time Left', 'Actions'].map(h => (
                     <th key={h} style={{ textAlign: 'left', padding: '0.5rem 1rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-subtle)' }}>{h}</th>
                   ))}
                 </tr>
@@ -531,16 +673,23 @@ const SupportDashboard = () => {
                         <StatusBadge status={ticket.status} />
                       </td>
 
-                      {/* SLA Score */}
-                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: ticket.sla_status === 'Breached' ? '#ef4444' : ticket.sla_status === 'At Risk' ? '#f59e0b' : '#10b981' }}>{ticket.sla_score != null ? ticket.sla_score : 0}/100</span>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>{ticket.sla_status || 'Unknown'}</span>
-                        </div>
+                      {/* SLA Score (Real-time) */}
+                      <td style={{ padding: '0.85rem 1rem' }}>
+                        <DynamicSLAScore 
+                          createdAt={ticket.created_at} 
+                          deadline={ticket.sla_deadline} 
+                          priority={ticket.priority} 
+                          initialScore={ticket.sla_score} 
+                        />
+                      </td>
+
+                      {/* Time Left (Real-time) */}
+                      <td style={{ padding: '0.85rem 1rem' }}>
+                        <TimeRemaining deadline={ticket.sla_deadline} />
                       </td>
 
                       {/* AI Recommendation */}
-                      <td style={{ padding: '1rem', maxWidth: '220px', borderTopRightRadius: '12px', borderBottomRightRadius: '12px', border: '1px solid var(--border-subtle)', borderLeft: 'none' }}>
+                      <td style={{ padding: '1rem', maxWidth: '180px', borderTopRightRadius: '12px', borderBottomRightRadius: '12px', border: '1px solid var(--border-subtle)', borderLeft: 'none' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                           <Zap size={14} color="#fbbf24" style={{ flexShrink: 0, marginTop: '2px' }} />
                           {ticket.recommended_action || '—'}

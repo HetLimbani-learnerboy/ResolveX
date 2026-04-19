@@ -163,8 +163,26 @@ def get_all_complaints():
             
             # Run SLA Algorithm
             sla_result = {"final_score": 0.0, "status": "No SLA"}
+            current_status = row[10]
             if created_at and sla_deadline:
                 sla_result = calculate_sla_score(created_at, sla_deadline, priority)
+            
+            # --- AUTO-ESCALATION LOGIC ---
+            # If SLA has breached (score 0) and it's not already resolved/closed/escalated:
+            if sla_result["final_score"] <= 0 and current_status not in ['Resolved', 'Closed', 'Escalated']:
+                try:
+                    # Update DB immediately
+                    cur.execute("""
+                        UPDATE complaints 
+                        SET status = 'Escalated', priority = 'Critical', updated_at = CURRENT_TIMESTAMP
+                        WHERE id = %s
+                    """, (row[0],))
+                    conn.commit()
+                    # Reflect in current response object
+                    current_status = 'Escalated'
+                    priority = 'Critical'
+                except Exception as db_err:
+                    print(f"⚠️ Auto-escalation DB error: {db_err}")
 
             data.append({
                 "id": str(row[0]),
@@ -177,7 +195,7 @@ def get_all_complaints():
                 "priority": priority,
                 "ai_confidence": float(row[8]) if row[8] is not None else 0.0,
                 "recommended_action": row[9],
-                "status": row[10],
+                "status": current_status,
                 "sla_deadline": sla_deadline.isoformat() if sla_deadline else None,
                 "created_at": created_at.isoformat() if created_at else None,
                 "sla_score": sla_result["final_score"],
