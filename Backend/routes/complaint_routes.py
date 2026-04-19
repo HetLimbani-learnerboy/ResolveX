@@ -125,8 +125,12 @@ def submit_complaint():
 @complaint_bp.route("/all", methods=["GET"])
 def get_all_complaints():
     """
-    Returns all complaints for the Audit/Manager dashboard.
+    Returns all complaints for the Audit/Manager dashboard,
+    now including real-time SLA metrics calculation.
     """
+    from services.sla_calculator import calculate_sla_score
+    import datetime
+
     conn = get_connection()
     if not conn:
         return jsonify({"error": "Database connection failed"}), 503
@@ -144,6 +148,24 @@ def get_all_complaints():
 
         data = []
         for row in rows:
+            created_at = row[12]
+            sla_deadline = row[11]
+            priority = row[7] or "Medium"
+
+            # Auto-synthesize deadline if null purely for reporting consistency
+            if not sla_deadline and created_at:
+                if priority.lower() in ['critical', 'high']:
+                    sla_deadline = created_at + datetime.timedelta(hours=24)
+                elif priority.lower() == 'medium':
+                    sla_deadline = created_at + datetime.timedelta(hours=48)
+                else:
+                    sla_deadline = created_at + datetime.timedelta(hours=72)
+            
+            # Run SLA Algorithm
+            sla_result = {"final_score": 0.0, "status": "No SLA"}
+            if created_at and sla_deadline:
+                sla_result = calculate_sla_score(created_at, sla_deadline, priority)
+
             data.append({
                 "id": str(row[0]),
                 "customer_id": str(row[1]) if row[1] else None,
@@ -152,12 +174,14 @@ def get_all_complaints():
                 "subject": row[4],
                 "complaint_text": row[5],
                 "category": row[6],
-                "priority": row[7],
+                "priority": priority,
                 "ai_confidence": float(row[8]) if row[8] is not None else 0.0,
                 "recommended_action": row[9],
                 "status": row[10],
-                "sla_deadline": str(row[11]) if row[11] else None,
-                "created_at": row[12].isoformat() if row[12] else None
+                "sla_deadline": sla_deadline.isoformat() if sla_deadline else None,
+                "created_at": created_at.isoformat() if created_at else None,
+                "sla_score": sla_result["final_score"],
+                "sla_status": sla_result["status"]
             })
         return jsonify(data), 200
     except Exception as e:
@@ -206,6 +230,11 @@ def list_customer_complaints(customer_id):
 # ==========================================
 # UPDATE STATUS
 # ==========================================
+STATUS_PROGRESS = {
+    'Open': 10, 'Under Review': 30, 'In Progress': 50,
+    'Escalated': 60, 'Resolved': 100, 'Closed': 100
+}
+
 @complaint_bp.route("/update-status/<complaint_id>", methods=["PUT"])
 def update_status(complaint_id):
     data = request.get_json()
@@ -226,7 +255,41 @@ def update_status(complaint_id):
             WHERE id = %s
         """, (new_status, complaint_id))
         conn.commit()
-        return jsonify({"message": "Status Updated"}), 200
+        return jsonify({
+            "message": "Status Updated",
+            "status": new_status,
+            "progress": STATUS_PROGRESS.get(new_status, 50)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# ==========================================
+# ESCALATE COMPLAINT TO CRITICAL
+# ==========================================
+@complaint_bp.route("/escalate/<complaint_id>", methods=["PUT"])
+def escalate_complaint(complaint_id):
+    conn = get_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 503
+
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE complaints
+            SET priority = 'Critical', status = 'Escalated', updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+        """, (complaint_id,))
+        conn.commit()
+        return jsonify({
+            "message": "Complaint escalated to Critical",
+            "priority": "Critical",
+            "status": "Escalated",
+            "progress": 60
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:

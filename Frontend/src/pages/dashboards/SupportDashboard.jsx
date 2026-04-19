@@ -448,7 +448,7 @@ const SupportDashboard = () => {
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
               <thead>
                 <tr>
-                  {['Ticket ID', 'Channel', 'Subject', 'Category (AI)', 'Priority', 'Status', 'Copilot Action'].map(h => (
+                  {['Ticket ID', 'Channel', 'Subject', 'Category (AI)', 'Priority', 'Status', 'SLA Score', 'Copilot Action'].map(h => (
                     <th key={h} style={{ textAlign: 'left', padding: '0.5rem 1rem', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border-subtle)' }}>{h}</th>
                   ))}
                 </tr>
@@ -457,14 +457,14 @@ const SupportDashboard = () => {
                 {isLoading ? (
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan="7" style={{ padding: '0.75rem 1rem' }}>
+                      <td colSpan="8" style={{ padding: '0.75rem 1rem' }}>
                         <div className="skeleton" style={{ height: '28px', borderRadius: '6px', background: 'var(--border-subtle)', animation: 'pulse 1.5s ease-in-out infinite' }} />
                       </td>
                     </tr>
                   ))
                 ) : filteredTickets.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                       No complaints found.
                     </td>
                   </tr>
@@ -516,6 +516,14 @@ const SupportDashboard = () => {
                       {/* Status */}
                       <td style={{ padding: '0.85rem 1rem' }}>
                         <StatusBadge status={ticket.status} />
+                      </td>
+
+                      {/* SLA Score */}
+                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: ticket.sla_status === 'Breached' ? '#ef4444' : ticket.sla_status === 'At Risk' ? '#f59e0b' : '#10b981' }}>{ticket.sla_score != null ? ticket.sla_score : 0}/100</span>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>{ticket.sla_status || 'Unknown'}</span>
+                        </div>
                       </td>
 
                       {/* AI Recommendation */}
@@ -587,6 +595,11 @@ const SupportDashboard = () => {
                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', flexShrink: 0 }}>
                     <PriorityBadge priority={selectedTicket.priority} />
                     <StatusBadge   status={selectedTicket.status} />
+                    {selectedTicket.sla_score != null && (
+                      <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, border: `1px solid ${selectedTicket.sla_status === 'Breached' ? 'rgba(239,68,68,0.3)' : selectedTicket.sla_status === 'At Risk' ? 'rgba(245,158,11,0.3)' : 'rgba(16,185,129,0.3)'}`, display: 'flex', alignItems: 'center', gap: '4px', background: selectedTicket.sla_status === 'Breached' ? 'rgba(239,68,68,0.1)' : selectedTicket.sla_status === 'At Risk' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', color: selectedTicket.sla_status === 'Breached' ? '#ef4444' : selectedTicket.sla_status === 'At Risk' ? '#f59e0b' : '#10b981' }}>
+                        SLA: {selectedTicket.sla_score}/100
+                      </span>
+                    )}
                     {selectedTicket.complaint_source && (
                       <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600, background: 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(52,211,153,0.1) 100%)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <ChannelIcon channel={selectedTicket.complaint_source} size={12} />

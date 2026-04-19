@@ -201,7 +201,6 @@ const ManagerDashboard = () => {
                   <th style={{ padding: '1rem', borderBottom: '2px solid var(--border-subtle)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>PRIORITY</th>
                   <th style={{ padding: '1rem', borderBottom: '2px solid var(--border-subtle)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>STATUS</th>
                   <th style={{ padding: '1rem', borderBottom: '2px solid var(--border-subtle)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>AI SCORE</th>
-                  <th style={{ padding: '1rem', borderBottom: '2px solid var(--border-subtle)', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', textAlign: 'right' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -223,34 +222,10 @@ const ManagerDashboard = () => {
                         <span style={{ color: (c.ai_confidence || 0) >= 80 ? '#10b981' : '#f59e0b' }}>{c.ai_confidence || 0}%</span>
                       </div>
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <select
-                        defaultValue={c.status}
-                        onChange={async (e) => {
-                          const newStatus = e.target.value;
-                          try {
-                            await fetch(`${BACKEND_URL}/api/complaints/update-status/${c.id}`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: newStatus })
-                            });
-                            setComplaints(prev => prev.map(item => item.id === c.id ? { ...item, status: newStatus } : item));
-                          } catch (err) {
-                            alert('Failed to update status');
-                          }
-                        }}
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--border-strong)', background: 'var(--bg-primary)', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', outline: 'none' }}
-                      >
-                        <option value="Open">Open</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </td>
                   </tr>
                 ))}
                 {complaints.length === 0 && (
-                  <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No complaints in database yet.</td></tr>
+                  <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No complaints in database yet.</td></tr>
                 )}
               </tbody>
             </table>

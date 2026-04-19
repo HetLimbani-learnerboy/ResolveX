@@ -101,3 +101,54 @@ def get_complaints_by_customer(customer_id):
             "created_at": row[5].strftime("%Y-%m-%d %H:%M:%S") if row[5] else None
         })
     return complaints
+
+
+def get_all_complaints():
+    conn = get_connection()
+    if not conn:
+        return []
+
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, subject, category, priority, status, created_at, complaint_text, ai_confidence, recommended_action, complaint_source
+        FROM complaints
+        ORDER BY created_at DESC
+    """)
+    
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    # Lazy load preprocessor to avoid circular dependencies if any
+    from ml.preprocessing import TextPreprocessor
+    preprocessor = TextPreprocessor()
+    
+    complaints = []
+    for row in rows:
+        priority = row[3] if row[3] else "Medium"
+        cat = row[2] if row[2] else "Uncategorized"
+        text = row[6] if row[6] else ""
+        
+        # Dynamically calculate the sentiment score here to show real data, 
+        # since it's not historically stored in the DB schema.
+        sentiment_score = preprocessor.get_sentiment(text)
+        
+        # Round it to 2 decimal places for better display
+        sentiment_score = round(sentiment_score, 2)
+        
+        complaints.append({
+            "id": row[0],
+            "subject": row[1],
+            "category": cat,
+            "priority": priority,
+            "status": row[4],
+            "timestamp": row[5].strftime("%Y-%m-%d %H:%M:%S") if row[5] else None,
+            "complaint_text": text,
+            "summary": row[1] or (text[:50] + "..." if text else ""), 
+            "sentiment_score": sentiment_score, 
+            "ai_confidence": float(row[7]) if row[7] else None,
+            "recommendation": row[8],
+            "original_text": text,
+            "channel": row[9]
+        })
+    return complaints
