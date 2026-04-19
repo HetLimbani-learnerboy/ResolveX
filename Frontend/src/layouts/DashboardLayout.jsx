@@ -72,10 +72,11 @@ const DashboardLayout = ({ children }) => {
     }
 
     /* =====================================
-       OPERATIONS MANAGER
+       SUPPORT EXECUTIVE / QA TEAM
     ===================================== */
     else if (
-      role === 'operations_manager'
+      role === 'operations_manager' || 
+      role === 'qa_team'
     ) {
       items = [
         {
@@ -105,10 +106,6 @@ const DashboardLayout = ({ children }) => {
         }
       ];
     }
-
-    /* =====================================
-       SUPPORT EXECUTIVE
-    ===================================== */
     else if (role === 'executive' || role === 'support') {
       items = [
         {

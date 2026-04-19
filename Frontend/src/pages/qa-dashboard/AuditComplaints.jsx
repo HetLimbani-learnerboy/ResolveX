@@ -17,22 +17,22 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
 
 const AuditComplaints = () => {
   const [complaints, setComplaints] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/complaints/all`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch audit data");
-        return res.json();
-      })
-      .then(data => {
-        // Use the real ai_confidence from the database
-        const enhancedData = (Array.isArray(data) ? data : []).map(c => ({
+    Promise.all([
+      fetch(`${BACKEND_URL}/api/complaints/all`).then(res => res.json()),
+      fetch(`${BACKEND_URL}/api/admin/stats`).then(res => res.json())
+    ])
+      .then(([complaintsData, statsData]) => {
+        const enhancedData = (Array.isArray(complaintsData) ? complaintsData : []).map(c => ({
           ...c,
           ai_confidence: c.ai_confidence || 0
         }));
         setComplaints(enhancedData);
+        setStats(statsData);
         setLoading(false);
       })
       .catch(err => {
@@ -117,43 +117,57 @@ const AuditComplaints = () => {
 
       <div className="dashboard-grid">
         {/* Metric Cards */}
-        <div className="col-span-4">
+        <div className="col-span-3">
           <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(99,102,241,0.05) 100%)', borderLeft: '4px solid #6366f1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(99,102,241,0.1)' }}>
                 <BarChart3 size={24} color="#6366f1" />
               </div>
               <div>
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalReviewed}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Total Complaints in DB</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{totalReviewed}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Total Complaints</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-span-4">
+        <div className="col-span-3">
           <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(16,185,129,0.05) 100%)', borderLeft: '4px solid #10b981' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(16,185,129,0.1)' }}>
                 <Target size={24} color="#10b981" />
               </div>
               <div>
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10b981' }}>{aiAccuracy}%</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Avg AI Confidence Score</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#10b981' }}>{aiAccuracy}%</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>AI Confidence</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-span-4">
+        <div className="col-span-3">
           <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(244,63,94,0.05) 100%)', borderLeft: '4px solid #f43f5e' }}>
              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(244,63,94,0.1)' }}>
                 <AlertCircle size={24} color="#f43f5e" />
               </div>
               <div>
-                <div style={{ fontSize: '2rem', fontWeight: 700, color: '#f43f5e' }}>{flaggedCount}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{"Flagged (< 80% Confidence)"}</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f43f5e' }}>{flaggedCount}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Flagged Issues</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-3">
+          <div className="card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(245,158,11,0.05) 100%)', borderLeft: '4px solid #f59e0b' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(245,158,11,0.1)' }}>
+                <Search size={24} color="#f59e0b" />
+              </div>
+              <div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#f59e0b' }}>{stats?.recurrence_score || 0}%</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Recurrence Score</div>
               </div>
             </div>
           </div>

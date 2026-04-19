@@ -13,6 +13,7 @@ import io
 import subprocess
 import threading
 from datetime import datetime
+from services.similarity_service import calculate_recurrence_stats
 
 admin_bp = Blueprint("admin_bp", __name__)
 
@@ -207,6 +208,9 @@ def get_admin_stats():
         for row in cur.fetchall():
             role_counts[row[0]] = row[1]
         
+        cur.execute("SELECT COUNT(*) FROM complaints")
+        total_complaints = cur.fetchone()[0]
+        
         cur.close()
         conn.close()
         
@@ -214,18 +218,33 @@ def get_admin_stats():
             "total_users": total_users,
             "active_users": active_users,
             "role_breakdown": role_counts,
-            "total_complaints": len(get_all_complaints()),
-            "total_categories": len(categories)
+            "total_complaints": total_complaints,
+            "total_categories": len(categories),
+            "recurrence_score": calculate_recurrence_stats().get("score", 0.0)
         })
     except Exception as e:
+        print(f"❌ Admin Stats Error: {e}")
         return jsonify({
             "total_users": 0,
             "active_users": 0,
             "role_breakdown": {},
-            "total_complaints": len(get_all_complaints()) if 'get_all_complaints' in globals() else 0,
+            "total_complaints": 0,
             "total_categories": len(categories),
+            "recurrence_score": 0.0,
             "error": str(e)
         })
+
+# ============================================================
+# RECURRING ISSUES
+# ============================================================
+@admin_bp.route("/recurring-issues", methods=["GET"])
+def get_recurring_issues_clusters():
+    """Returns detailed clusters of similar complaints for QA analysis."""
+    try:
+        stats = calculate_recurrence_stats()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # MANAGE CATEGORIES
