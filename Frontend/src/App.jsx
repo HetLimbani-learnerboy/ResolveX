@@ -318,7 +318,7 @@ function App() {
 
 
           <Route
-            path="/feedback"
+            path="/qa-feedback"
             element={
               <ProtectedRoute
                 allowedRoles={[

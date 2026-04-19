@@ -9,7 +9,6 @@ import {
   Send,
   Bot,
   Sparkles,
-  ChevronDown,
   Loader2,
   Lightbulb,
   X,
@@ -21,8 +20,7 @@ import {
   Archive
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-
-const CATEGORIES = ['Trade', 'Product', 'Packaging'];
+import toast from 'react-hot-toast';
 
 const CustomerDashboard = () => {
   const { user } = useAuth();
@@ -30,7 +28,6 @@ const CustomerDashboard = () => {
   const hash = location.hash || '';
 
   const [subject, setSubject] = useState('');
-  const [category, setCategory] = useState('');
   const [complaint, setComplaint] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -81,8 +78,8 @@ const CustomerDashboard = () => {
   }, [chatMessages, isTyping, isChatOpen]);
 
   const handleAiSuggest = async () => {
-    if (!subject.trim() || !complaint.trim() || !category) {
-      setSuggestionError('Please fill in Subject, Category, and Details before requesting AI suggestion.');
+    if (!subject.trim() || !complaint.trim()) {
+      setSuggestionError('Please fill in Subject and Details before requesting AI suggestion.');
       return;
     }
     setSuggestionError('');
@@ -93,7 +90,7 @@ const CustomerDashboard = () => {
       const res = await fetch(`${BACKEND_URL}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, category, complaint_text: complaint })
+        body: JSON.stringify({ subject, category: 'Auto', complaint_text: complaint })
       });
       const data = await res.json();
       setAiSuggestion(data.suggestion || 'No suggestion available.');
@@ -102,7 +99,7 @@ const CustomerDashboard = () => {
         {
           id: Date.now(),
           sender: 'ai',
-          text: `Hi ${user?.name || 'there'}! I've reviewed your complaint about **"${subject}"** (${category} category). Here's my suggestion:\n\n${data.suggestion}\n\nWould you like to discuss this further or shall I help you refine your complaint before submission?`
+          text: `Hi ${user?.name || 'there'}! I've reviewed your complaint about **"${subject}"**. Here's my suggestion:\n\n${data.suggestion}\n\nWould you like to discuss this further or shall I help you refine your complaint before submission?`
         }
       ];
       setChatMessages(intro);
@@ -132,7 +129,7 @@ const CustomerDashboard = () => {
         body: JSON.stringify({
           message: userMsg,
           session_id: sessionId.current,
-          context: { subject, category, complaint_text: complaint }
+          context: { subject, category: 'Auto', complaint_text: complaint }
         })
       });
       const data = await res.json();
@@ -171,22 +168,26 @@ const CustomerDashboard = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject,
-          category,
           complaint_text: complaint,
           customer_id: user?.id
         })
       });
       const data = await res.json();
       if (res.ok) {
-        alert(`✅ Complaint submitted! Ticket ID: ${data.ticket_id || 'N/A'}`);
-        setSubject(''); setCategory(''); setComplaint('');
+        toast.success(`Complaint submitted! Ticket ID: ${data.ticket_id || 'N/A'}`);
+        setSubject(''); setComplaint('');
         setAiSuggestion(null); setChatMessages([]); setChatPhase('idle');
-        setIsModalOpen(false); // Close Modal on success
+        setIsModalOpen(false);
+        // Refresh tickets
+        fetch(`${BACKEND_URL}/api/complaints/customer/${user?.id}`)
+          .then(r => r.ok ? r.json() : [])
+          .then(d => setTickets(Array.isArray(d) ? d : []))
+          .catch(() => {});
       } else {
-        alert(`❌ Submission failed: ${data.error || 'Unknown error'}`);
+        toast.error(data.error || 'Submission failed');
       }
     } catch {
-      alert('❌ Could not reach the server. Please try again.');
+      toast.error('Could not reach the server. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -251,38 +252,19 @@ const CustomerDashboard = () => {
           </div>
           
           <form onSubmit={handleFormSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <div className="form-group" style={{ flex: 2, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Issue Subject</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Service Interruption in Region A"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  style={{ padding: '0.875rem 1rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', color: 'var(--text-primary)', transition: 'all 0.2s', outline: 'none' }}
-                  onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
-                  required
-                />
-              </div>
-
-              <div className="form-group" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Category</label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    required
-                    style={{ width: '100%', padding: '0.875rem 2.5rem 0.875rem 1rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', color: category ? 'var(--text-primary)' : 'var(--text-muted)', appearance: 'none', cursor: 'pointer', outline: 'none', transition: 'all 0.2s' }}
-                    onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
-                  >
-                    <option value="" disabled>Select category...</option>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
-                </div>
-              </div>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Issue Subject</label>
+              <input
+                type="text"
+                placeholder="e.g., Service Interruption in Region A"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                style={{ padding: '0.875rem 1rem', border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--bg-primary)', color: 'var(--text-primary)', transition: 'all 0.2s', outline: 'none' }}
+                onFocus={e => e.target.style.borderColor = 'var(--brand-primary)'}
+                onBlur={e => e.target.style.borderColor = 'var(--border-strong)'}
+                required
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Sparkles size={12} /> Category will be auto-detected by our AI engine</span>
             </div>
 
             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -494,8 +476,8 @@ const CustomerDashboard = () => {
 
 
   const handleFeedbackSubmit = async () => {
-    if (!selectedComplaintId) { alert('Please select a ticket.'); return; }
-    if (feedbackRating === 0) { alert('Please select a star rating.'); return; }
+    if (!selectedComplaintId) { toast.error('Please select a ticket.'); return; }
+    if (feedbackRating === 0) { toast.error('Please select a star rating.'); return; }
 
     setFeedbackSubmitting(true);
     try {
@@ -513,11 +495,12 @@ const CustomerDashboard = () => {
       if (res.ok) {
         setFeedbackSubmitted(true);
         setFeedbackText('');
+        toast.success('Thank you for your feedback!');
       } else {
-        alert(`Error: ${data.error || 'Failed to submit feedback'}`);
+        toast.error(data.error || 'Failed to submit feedback');
       }
     } catch {
-      alert('Could not reach the server.');
+      toast.error('Could not reach the server.');
     } finally {
       setFeedbackSubmitting(false);
     }

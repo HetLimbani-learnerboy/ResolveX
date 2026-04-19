@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Edit, RefreshCw, Shield, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -8,7 +9,7 @@ const UserManagement = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editRole, setEditRole] = useState('');
-  const API = 'http://localhost:5000/api/admin';
+  const API = (import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000') + '/api/admin';
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -41,10 +42,10 @@ const UserManagement = () => {
         setIsAdding(false);
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to create user');
+        toast.error(data.error || 'Failed to create user');
       }
     } catch (err) {
-      alert('Backend connection error');
+      toast.error('Backend connection error');
     }
   };
 
@@ -54,7 +55,7 @@ const UserManagement = () => {
       await fetch(`${API}/users/${id}`, { method: 'DELETE' });
       fetchUsers();
     } catch (err) {
-      alert('Delete failed');
+      toast.error('Delete failed');
     }
   };
 
@@ -68,7 +69,7 @@ const UserManagement = () => {
       setEditingId(null);
       fetchUsers();
     } catch (err) {
-      alert('Update failed');
+      toast.error('Update failed');
     }
   };
 
@@ -81,7 +82,7 @@ const UserManagement = () => {
       });
       fetchUsers();
     } catch (err) {
-      alert('Toggle failed');
+      toast.error('Toggle failed');
     }
   };
 

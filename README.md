@@ -34,26 +34,6 @@ It is built around four central personas:
 3. **Support Executive:** Works on critical escalations with precise contextual summarizations.
 4. **Quality Assurance (QA):** Monitors historical AI accuracy, overrides misclassifications, and reviews customer feedback logic.
 
-```mermaid
-journey
-    title The ResolveX Ticketing Experience
-    section Discovery & Automated Help
-      Customer experiences an issue: 3: Customer
-      Opens ResolveX Support Portal: 4: Customer
-      Chatbot actively suggests instant fix: 5: AI Engine
-    section Intelligent Routing
-      Customer decides to submit full ticket: 4: Customer
-      Local ML instantly classifies (Category, Priority, Fraud): 5: System
-      Mathematical SLA dynamically assigned: 5: System
-    section Dashboard Triage
-      Operations visualizes mass ticket influx: 4: Ops Manager
-      Tickets distributed to Executive Team: 4: Ops Manager
-    section Resolution & QA
-      Executive resolves issue using detailed AI Contexts: 5: Executive
-      Customer rates experience 5-stars: 5: Customer
-      QA maps AI Category vs Actual Rating: 4: QA Analyst
-```
-
 ---
 
 ## 🏗 System Architecture
@@ -128,15 +108,6 @@ Using `Scikit-Learn` and serialized `joblib` artifacts, ResolveX executes the pr
 - **Fraud/Spam Filter:** Anomaly detection looking for malicious payloads or zero-effort text.
 - **Recommendation Engine:** Maps known category arrays to immediate solution protocols.
 
-```mermaid
-pie title Automated Volume Distribution (Example)
-    "Product Defect Routing" : 40
-    "Billing & Fulfillment" : 25
-    "Account / Setup" : 20
-    "Anomaly & Fraud Filtered" : 10
-    "Unknown Fallbacks" : 5
-```
-
 ### 2. Generative Fallback
 The Google **Gemini API** is utilized strictly for Natural Language (NL) conversational interactions directly with the customer through the chatbot interface, acting as a friendly conversational layer that wraps the rigid structural outputs of our local ML.
 
@@ -159,25 +130,6 @@ sequenceDiagram
     DB-->>Flask API: Return Success (Ticket ID)
     Flask API-->>React App: Resolved / Forwarded
     React App-->>Customer: Show Tracking Dashboard
-```
-
----
-
-## 🚦 Ticket Lifecycle (State Diagram)
-
-Every ticket routes through a strict programmatic state machine ensuring no issues are ignored.
-
-```mermaid
-stateDiagram-v2
-    [*] --> Open : Customer Submits Complaint
-    Open --> In_Progress : Ops assigns ticket to Executive
-    Open --> Escalated : Machine Learning flags as Critical
-    In_Progress --> Resolved : Executive applies fix
-    Escalated --> Resolved : Executive applies immediate fix
-    Resolved --> Closed : Conclusion accepted
-    Resolved --> Reopened : QA identifies mismatch <br/> or Customer flags failure
-    Reopened --> Escalated : Return to pool with high priority
-    Closed --> [*]
 ```
 
 ---
