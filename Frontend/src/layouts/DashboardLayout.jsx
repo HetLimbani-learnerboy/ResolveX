@@ -138,6 +138,34 @@ const DashboardLayout = ({ children }) => {
     }
 
     /* =====================================
+       QA TEAM
+    ===================================== */
+    else if (role === 'qa_team') {
+      items = [
+        {
+          path: '/qa-dashboard',
+          label: 'QA Dashboard',
+          icon: LayoutDashboard
+        },
+        {
+          path: '/misclassifications',
+          label: 'Misclassifications',
+          icon: AlertTriangle
+        },
+        {
+          path: '/recurring-issues',
+          label: 'Recurring Issues',
+          icon: MessageSquareText
+        },
+        {
+          path: '/qa-feedback',
+          label: 'User Feedback',
+          icon: MessageSquare
+        }
+      ];
+    }
+
+    /* =====================================
        DEFAULT
     ===================================== */
     else {

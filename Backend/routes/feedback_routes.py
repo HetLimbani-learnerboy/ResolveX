@@ -154,9 +154,10 @@ def get_all_feedback():
     try:
         cur.execute("""
             SELECT f.id, f.complaint_id, f.customer_id, f.rating, f.feedback_text, f.created_at,
-                   c.subject, c.category
+                   c.subject, c.category, cus.full_name, cus.email
             FROM feedback f
             LEFT JOIN complaints c ON f.complaint_id = c.id
+            LEFT JOIN customers cus ON f.customer_id = cus.id
             ORDER BY f.created_at DESC
         """)
         rows = cur.fetchall()
@@ -170,7 +171,9 @@ def get_all_feedback():
                 "feedback_text": row[4],
                 "created_at": row[5].isoformat() if row[5] else None,
                 "complaint_subject": row[6],
-                "complaint_category": row[7]
+                "complaint_category": row[7],
+                "customer_name": row[8] or "Unknown",
+                "customer_email": row[9] or "N/A"
             })
         return jsonify(data), 200
     except Exception as e:
