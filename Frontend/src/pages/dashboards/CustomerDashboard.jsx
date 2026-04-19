@@ -67,7 +67,7 @@ const CustomerDashboard = () => {
 
   // Fetch real complaints from database
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/complaints/all`)
+    fetch(`${BACKEND_URL}/api/complaints/customer/${user?.id}`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         setTickets(Array.isArray(data) ? data : []);
@@ -90,7 +90,7 @@ const CustomerDashboard = () => {
     setIsSuggesting(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/complaints/suggest`, {
+      const res = await fetch(`${BACKEND_URL}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject, category, complaint_text: complaint })

@@ -1,51 +1,31 @@
-"""
-routes/chat_routes.py
-Blueprint: /api/chat/*
-"""
-
 from flask import Blueprint, request, jsonify
-from services.gemini_service import chat_with_context
+# Absolute import is more stable in Flask
+from services.groq_service import chat_with_context 
 
-chat_bp = Blueprint("chat", __name__)
+chat_bp = Blueprint("chat_bp", __name__)
 
-
-# ── POST /api/chat/message ───────────────────────────────────────────────────
 @chat_bp.route("/message", methods=["POST"])
 def message():
     """
-    Multi-turn chat endpoint.
-
-    Body:
-        {
-          "message":    "user's message",
-          "session_id": "session_abc123",
-          "context":    {                  ← optional, injected on first call
-            "subject":        "...",
-            "category":       "...",
-            "complaint_text": "..."
-          }
-        }
+    URL: http://localhost:5000/api/chat/message
     """
-    data = request.get_json(force=True)
+    # get_json(silent=True) prevents crashing if body is empty or malformed
+    data = request.get_json(silent=True) or {}
+    
+    user_msg = data.get("message", "").strip()
+    session_id = data.get("session_id", "default")
+    context = data.get("context", {}) 
 
-    user_message = (data.get("message") or "").strip()
-    session_id = data.get("session_id") or "default"
-    context = data.get("context")          # dict or None
-
-    if not user_message:
-        return jsonify({"error": "message is required."}), 400
+    if not user_msg:
+        return jsonify({"error": "No message provided"}), 400
 
     try:
-        reply = chat_with_context(session_id, user_message, context)
-        return jsonify({"reply": reply}), 200
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
-
-
-# ── DELETE /api/chat/session/<session_id> ────────────────────────────────────
-@chat_bp.route("/session/<session_id>", methods=["DELETE"])
-def delete_session(session_id):
-    """Clear a stored chat session (e.g. on page unload)."""
-    from services.gemini_service import _sessions
-    _sessions.pop(session_id, None)
-    return jsonify({"deleted": session_id}), 200
+        reply = chat_with_context(session_id, user_msg, context)
+        return jsonify({
+            "reply": reply,
+            "session_id": session_id
+        }), 200
+    except Exception as e:
+        # Log the error for debugging
+        print(f"❌ Chat Route Error: {e}")
+        return jsonify({"error": "AI processing failed. Check backend logs."}), 500
