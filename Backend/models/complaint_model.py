@@ -42,7 +42,7 @@ def create_complaint_table():
     conn.close()
 
 
-def insert_complaint(customer_id, subject, category, complaint_text, priority="Medium", recommended_action=None, ai_confidence=None, complaint_source="Web"):
+def insert_complaint(customer_id=None, subject=None, category=None, complaint_text=None, priority="Medium", recommended_action=None, ai_confidence=None, complaint_source="Web"):
     conn = get_connection()
     if not conn:
         print("⚠️ Warning: Cannot insert complaint without DB. Returning fake ID for demo.")

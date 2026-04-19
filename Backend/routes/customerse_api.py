@@ -48,8 +48,9 @@ Analyze the customer communication and extract:
 1. Subject: Concise title (max 6 words).
 2. Category: Exactly one of [Product, Packaging, Trade].
 3. Priority: Exactly one of [Low, Medium, High].
+4. Validity: Boolean true if this is a real support request, false if it is gibberish, spam, or nonsense.
 Return JSON ONLY:
-{ "subject": "", "category": "", "priority": "" }
+{ "subject": "", "category": "", "priority": "", "is_valid": true }
 """
 
 # Prompt 2: Strategic Recommendations
@@ -80,6 +81,16 @@ def analyze_incoming_text(raw_text):
             response_format={"type": "json_object"}
         )
         data = json.loads(resp1.choices[0].message.content)
+
+        # Ensure is_valid exists
+        if "is_valid" not in data:
+            data["is_valid"] = True
+
+        # If it's invalid, don't bother with recommendations
+        if not data["is_valid"]:
+            data["recommended_action"] = "No action: Invalid input."
+            data["ai_confidence"] = 0.0
+            return data
 
         # Step 2: Expert Phase (Recommendations)
         resp2 = client.chat.completions.create(
@@ -136,12 +147,25 @@ def process_complaint():
     # 1. Run Intelligence Pipeline
     ai_result = analyze_incoming_text(raw_text)
 
+    # 1b. Fallback to Local ML if LLM fails (e.g. Rate Limit or Network)
+    if not ai_result:
+        print("🔄 LLM Failed. Falling back to Local ML Models...")
+        ai_result = ml_fallback(raw_text)
+        if ai_result:
+            ai_result["is_valid"] = True # Fallback assumes valid if it processed
+            # Check if fallback actually found something (optional: could check sentiment)
+            if len(raw_text) < 5 or ai_result["category"] == "Other":
+                ai_result["is_valid"] = False
+
+    if not ai_result:
+        return jsonify({"error": "AI processing core failed completely."}), 500
+
     # 2. SPAM CHECK: Do not insert if invalid
-    if not ai_result.get("is_valid"):
+    if not ai_result.get("is_valid", True):
         return jsonify({
             "success": False,
-            "message": "Input rejected: Spam or Gibberish detected.",
-            "ai_reason": ai_result.get("error")
+            "error": "Input rejected: Spam or Gibberish detected.",
+            "ai_reason": "The AI engine flagged this as non-compliant or junk text."
         }), 422  # Unprocessable Entity
 
     # 3. DATABASE INSERTION (Only for valid messages)
