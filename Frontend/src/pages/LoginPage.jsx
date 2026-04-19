@@ -44,8 +44,8 @@ const LoginPage = () => {
     try {
       const response = await fetch(`${BACKEND_URL.replace(/\/$/, '')}/api/auth/login`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
+        headers: {
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ email, password }),
       });
@@ -58,13 +58,13 @@ const LoginPage = () => {
 
       // Based on your Postman: data.token and data.user are the correct keys
       login(data.token, data.user);
-      
+
       // Navigate based on the role in the response
       redirectByRole(data.user.role);
 
     } catch (err) {
-      setError(err.message === 'Failed to fetch' 
-        ? 'Backend server is offline' 
+      setError(err.message === 'Failed to fetch'
+        ? 'Backend server is offline'
         : err.message
       );
     } finally {
