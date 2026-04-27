@@ -28,15 +28,29 @@
 - **Event Name:** Tark Shaastra · Lakshya 2.0
 - **Category:** AI-Powered Complaint Classification & Resolution Recommendation Engine
 
+### Problem Definition
+
+In the wellness industry, customer complaints are received through multiple channels such as emails, call centers, chats, and direct support communication. These complaints are often reviewed manually, which causes delays in categorization, inconsistent tagging, missed service-level agreements (SLAs), and slower customer response times. Businesses also struggle to identify urgent complaints quickly and provide accurate resolution steps in real time.
+
+To solve this challenge, we developed an intelligent AI-powered complaint management platform that automatically classifies complaints into relevant categories, predicts priority levels based on urgency and impact, recommends actionable resolution steps, tracks complaint lifecycle stages, and provides live dashboards for operational monitoring. This improves efficiency, consistency, and customer satisfaction.
+
+### Objective
+
+The main objective of this project is to reduce manual complaint handling efforts by automating classification, prioritization, and response recommendation using AI/ML techniques. The system is designed to process complaints within seconds, ensuring faster support operations and improved SLA compliance.
+
+Another objective is to provide role-based dashboards for customers, executives, quality assurance teams, operations managers, and administrators. These dashboards offer complaint analytics, recurring issue detection, AI audit reports, workload visibility, and exportable business insights for smarter decision-making.
+
 ### Team Information
+
 **Team Name:** Hogwarts Tech Wizards
 
 #### Team Members
+
 | Name | Role |
 |------|------|
-| Het Limbani | Team Lead / Full-Stack Developer with AI/ML Development | 
-| Ansh Patoliya | Full-Stack Developer | 
-| Anuj Raval | Backend Developer with AI/ML Development | 
+| Het Limbani | Team Lead / Full-Stack Developer with AI/ML Development |
+| Ansh Patoliya | Full-Stack Developer |
+| Anuj Raval | Backend Developer with AI/ML Development |
 
 ---
 
