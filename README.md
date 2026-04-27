@@ -1,8 +1,4 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Active_Development-success?style=for-the-badge&logo=rocket" alt="Status" />
-  <img src="https://img.shields.io/badge/Hackathon-TechVision%202024-blue?style=for-the-badge&logo=github" alt="Hackathon" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
-  
   <br />
   <h1>🚀 ResolveX</h1>
   <h2>AI-Powered Customer Support & SLA Management Platform</h2>
@@ -30,7 +26,7 @@
 
 ### Hackathon Details
 - **Event Name:** Tark Shaastra · Lakshya 2.0
-- **Category:** AI/ML, Customer Service, Enterprise Solutions
+- **Category:** AI-Powered Complaint Classification & Resolution Recommendation Engine
 
 ### Team Information
 **Team Name:** Hogwarts Tech Wizards
@@ -69,88 +65,64 @@ Manual ticket triage is time-consuming, inconsistent, and prone to human error. 
 
 ### High-Level Architecture Diagram
 
+The following details the full-stack architecture, detailing how the unified frontend distributes to role-locked views, hits the Python middleware, and gets triaged by our proprietary Machine Learning engine.
+
 ```mermaid
 graph TD
-    subgraph Client["🖥️ Frontend Layer - React/Vite"]
-        CP["🛒 Customer Portal"]
-        MD["📊 Manager Dashboard"]
-        EC["👔 Executive Console"]
-        QA["🔍 QA Analytics Board"]
+    %% Define Styles
+    classDef client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef backend fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef ai fill:#312e81,stroke:#8b5cf6,stroke-width:2px,color:#fff;
+    classDef db fill:#064e3b,stroke:#f59e0b,stroke-width:2px,color:#fff;
+
+    %% Frontend Tier
+    subgraph Frontend [React / Vite Client Tier]
+        C[Customer Portal]:::client
+        M[Manager Dashboard]:::client
+        E[Executive Console]:::client
+        Q[QA Analytics Board]:::client
     end
 
-    subgraph Auth["🔐 Authentication Layer"]
-        JWT["JWT Token Service"]
+    %% Backend Tier
+    subgraph CoreBackend [Python Flask Core API]
+        R[(Router & Auth)]:::backend
+        Comp[Complaint Service]:::backend
+        SLA[Dynamic SLA Calculator]:::backend
+        QA[Feedback Mod]:::backend
     end
 
-    subgraph API["🔌 API Gateway - Flask"]
-        Router["Request Router"]
-        Auth["Auth Service"]
+    %% AI Pipeline
+    subgraph AIEngine [Hybrid Intelligence Engine]
+        ML[Local Scikit-Learn Pipeline<br>Accuracy: >99.8%]:::ai
+        Fraud[Spam & Fraud Filter]:::ai
+        Rec[Recommendation Model]:::ai
+        LLM[Google Gemini API<br>NL Summarization]:::ai
     end
 
-    subgraph Services["⚙️ Core Services"]
-        Complaint["Complaint Service"]
-        SLA["SLA Calculator"]
-        Feedback["Feedback Manager"]
-        Recurring["Recurring Issue Detector"]
-    end
+    %% Database
+    DB[(PostgreSQL Database)]:::db
 
-    subgraph MLPipeline["🤖 AI/ML Intelligence Engine"]
-        Preprocessing["Text Preprocessing"]
-        Classification["Category Classifier<br/>Scikit-Learn"]
-        PriorityPred["Priority Predictor<br/>XGBoost"]
-        Fraud["Fraud Detector<br/>Similarity Engine"]
-        Recommender["LLM Recommender<br/>Google Gemini"]
-    end
+    %% Connections
+    C -->|JWT / REST| R
+    M -->|JWT / REST| R
+    E -->|JWT / REST| R
+    Q -->|JWT / REST| R
 
-    subgraph Database["🗄️ Data Layer"]
-        PostgreSQL["PostgreSQL Database"]
-        Cache["Cache Layer"]
-    end
-
-    subgraph External["🌐 External Services"]
-        Gemini["Google Gemini API"]
-        Groq["Groq API"]
-    end
-
-    CP -->|REST + JWT| JWT
-    MD -->|REST + JWT| JWT
-    EC -->|REST + JWT| JWT
-    QA -->|REST + JWT| JWT
-
-    JWT --> Auth
-    Auth --> Router
-
-    Router --> Complaint
-    Router --> Feedback
-    Router --> Recurring
-
-    Complaint --> SLA
-    Complaint --> Preprocessing
-
-    Preprocessing --> Classification
-    Preprocessing --> PriorityPred
-    Preprocessing --> Fraud
-
-    Classification -->|Category| Recommender
-    PriorityPred -->|Priority| Recommender
-    Fraud -->|Flagged Duplicates| SLA
-
-    Recommender --> Gemini
-    Recommender --> Groq
-
-    SLA --> PostgreSQL
-    Classification --> Cache
-    PriorityPred --> Cache
-    Feedback --> PostgreSQL
-
-    style Client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style Auth fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
-    style API fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
-    style Services fill:#374151,stroke:#6366f1,stroke-width:2px,color:#fff
-    style MLPipeline fill:#312e81,stroke:#8b5cf6,stroke-width:2px,color:#fff
-    style Database fill:#064e3b,stroke:#f59e0b,stroke-width:2px,color:#fff
-    style External fill:#7c2d12,stroke:#ec4899,stroke-width:2px,color:#fff
+    R --> Comp
+    R --> QA
+    
+    Comp --> SLA
+    Comp --> ML
+    Comp --> Fraud
+    Comp --> Rec
+    Comp -.->|Complex NL Edge Cases| LLM
+    
+    SLA --> DB
+    ML --> DB
+    QA --> DB
 ```
+
+---
 
 ### Component Descriptions
 
@@ -167,68 +139,6 @@ graph TD
 ---
 
 ## 🔄 Application Workflow
-
-### Request Processing Pipeline
-
-```mermaid
-graph LR
-    subgraph Step1["Step 1: Intake"]
-        A["📝 Customer Submits Complaint"]
-    end
-
-    subgraph Step2["Step 2: Validation"]
-        B["🔐 JWT Authentication"]
-        C["✅ Input Validation"]
-    end
-
-    subgraph Step3["Step 3: Preprocessing"]
-        D["🧹 Text Cleaning"]
-        E["🎯 Sentiment Analysis"]
-    end
-
-    subgraph Step4["Step 4: Intelligence"]
-        F["🏷️ Category Classification"]
-        G["📊 Priority Prediction"]
-        H["🔍 Fraud Detection"]
-    end
-
-    subgraph Step5["Step 5: Recommendations"]
-        I["💡 LLM Analysis<br/>Generate Action Items"]
-    end
-
-    subgraph Step6["Step 6: Assignment"]
-        J["⏱️ SLA Calculator<br/>Set Deadline"]
-        K["👤 Route to Support Team"]
-    end
-
-    subgraph Step7["Step 7: Tracking"]
-        L["📊 Dashboard Updates"]
-        M["📈 Analytics Processed"]
-    end
-
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    E --> G
-    E --> H
-    F --> I
-    G --> I
-    H --> I
-    I --> J
-    J --> K
-    K --> L
-    L --> M
-
-    style Step1 fill:#3b82f6,stroke:#1e40af,stroke-width:2px,color:#fff
-    style Step2 fill:#10b981,stroke:#065f46,stroke-width:2px,color:#fff
-    style Step3 fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff
-    style Step4 fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff
-    style Step5 fill:#ec4899,stroke:#831843,stroke-width:2px,color:#fff
-    style Step6 fill:#06b6d4,stroke:#164e63,stroke-width:2px,color:#fff
-    style Step7 fill:#14b8a6,stroke:#134e4a,stroke-width:2px,color:#fff
-```
 
 ### Data Flow Sequence
 
@@ -257,6 +167,29 @@ sequenceDiagram
     Frontend->>Customer: Confirmation + Next Steps
 
     Note over Customer,DB: Entire process completes in <500ms
+```
+###  Generative Fallback
+The Google **Gemini API** is utilized strictly for Natural Language (NL) conversational interactions directly with the customer through the chatbot interface, acting as a friendly conversational layer that wraps the rigid structural outputs of our local ML.
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant React App
+    participant Flask API
+    participant Scikit-Learn
+    participant SLA Logic
+    participant DB
+
+    Customer->>React App: Submit Issue "App crashing on checkout"
+    React App->>Flask API: POST /api/complaints/submit
+    Flask API->>Scikit-Learn: Inject Text -> Vectorizer
+    Scikit-Learn-->>Flask API: Category: Bug | Priority: High | Fraud: False
+    Flask API->>SLA Logic: Calc (Priority: High, Created: Now)
+    SLA Logic-->>Flask API: Deadline: 24h, Score: 100
+    Flask API->>DB: INSERT Ticket
+    DB-->>Flask API: Return Success (Ticket ID)
+    Flask API-->>React App: Resolved / Forwarded
+    React App-->>Customer: Show Tracking Dashboard
 ```
 
 ---
@@ -517,52 +450,44 @@ python apitest.py
 
 ## 📸 Project Gallery
 
-### Add Your Project Screenshots Here
+| No. | Module | Screenshot | Description |
+|----|--------|------------|-------------|
+| 1 | Landing Page | ![](./ss/ss-1.png) | Main homepage of ResolveX platform. |
+| 2 | Sign In | ![](./ss/ss-2.png) | Secure email/password login page. |
+| 3 | Database | ![](./ss/ss-3.png) | Neon DB with bcrypt password storage. |
+| 4 | Customer Dashboard | ![](./ss/ss-4.png) | Active tickets and complaint overview. |
+| 5 | Complaint Submit | ![](./ss/ss-5.png) | Complaint inserted with AI suggestion. |
+| 6 | Complaint History | ![](./ss/ss-6.png) | Past submitted complaint records. |
 
-Below are placeholder sections for your project images. Replace the URLs with actual screenshots from your implementation:
+| No. | Module | Screenshot | Description |
+|----|--------|------------|-------------|
+| 7 | Track Status | ![](./ss/ss-7.png) | Real-time complaint progress tracking. |
+| 8 | Notifications | ![](./ss/ss-8.png) | Updates and complaint alerts. |
+| 9 | Rating Page | ![](./ss/ss-9.png) | Rate final complaint resolution. |
+| 10 | Executive Dashboard | ![](./ss/ss-10.png) | Live complaint monitoring panel. |
+| 11 | AI Resolution | ![](./ss/ss-11.png) | AI actions and status override page. |
+| 12 | Analytics Panel | ![](./ss/ss-12.png) | Category trends and SLA metrics. |
 
-#### 1. Landing Page
-```
-![Landing Page](./screenshots/landing-page.png)
-```
+| No. | Module | Screenshot | Description |
+|----|--------|------------|-------------|
+| 13 | QA Dashboard | ![](./ss/ss-13.png) | Weekly trends and QA insights. |
+| 14 | Misclassifications | ![](./ss/ss-14.png) | Correct low-confidence predictions. |
+| 15 | Recurring Issues | ![](./ss/ss-15.png) | Detect repeated complaint clusters. |
+| 16 | Feedback Analytics | ![](./ss/ss-16.png) | Customer feedback review system. |
+| 17 | Operations Dashboard | ![](./ss/ss-17.png) | Operational ticket overview. |
+| 18 | AI Audit | ![](./ss/ss-18.png) | AI quality and flagged issue checks. |
 
-#### 2. Customer Portal
-```
-![Customer Portal](./screenshots/customer-portal.png)
-```
+| No. | Module | Screenshot | Description |
+|----|--------|------------|-------------|
+| 19 | Resolution Review | ![](./ss/ss-19.png) | Approve AI resolutions. |
+| 20 | Admin Dashboard | ![](./ss/ss-20.png) | System-wide admin controls. |
+| 21 | Manage Categories | ![](./ss/ss-21.png) | Edit complaint categories. |
+| 22 | Export Reports | ![](./ss/ss-22.png) | Download CSV / JSON reports. |
+| 23 | Retrain Models | ![](./ss/ss-23.png) | Trigger ML model retraining. |
+| 24 | User Management | ![](./ss/ss-24.png) | Create users and assign roles. |
 
-#### 3. Manager Dashboard
-```
-![Manager Dashboard](./screenshots/manager-dashboard.png)
-```
-
-#### 4. Executive Console
-```
-![Executive Console](./screenshots/executive-console.png)
-```
-
-#### 5. QA Analytics Board
-```
-![QA Analytics](./screenshots/qa-analytics.png)
-```
-
-#### 6. ML Classification Results
-```
-![ML Results](./screenshots/ml-results.png)
-```
-
-#### 7. Real-Time Monitoring
-```
-![Monitoring](./screenshots/monitoring.png)
-```
-
-#### 8. SLA Tracking Interface
-```
-![SLA Tracking](./screenshots/sla-tracking.png)
-```
 
 ---
-
 ## 📚 Key Features
 
 ### 🎯 Intelligent Ticket Classification
