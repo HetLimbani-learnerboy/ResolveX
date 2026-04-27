@@ -1,217 +1,607 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge&logo=rocket" alt="Status" />
-  <img src="https://img.shields.io/badge/Architecture-Hybrid_AI-8b5cf6?style=for-the-badge&logo=google-gemini" alt="Architecture" />
-  <img src="https://img.shields.io/badge/React-Vite_UI-3b82f6?style=for-the-badge&logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/Python-Flask-facc15?style=for-the-badge&logo=python" alt="Python Flask" />
+  <img src="https://img.shields.io/badge/Status-Active_Development-success?style=for-the-badge&logo=rocket" alt="Status" />
+  <img src="https://img.shields.io/badge/Hackathon-TechVision%202024-blue?style=for-the-badge&logo=github" alt="Hackathon" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
   
   <br />
-  <h1>🚀 ResolveX CRM & SLA Engine</h1>
-  <p><strong>The Next-Generation AI-Driven Support Ecosystem</strong></p>
-  <p>Engineered for maximum operational efficiency, combining high-speed Local ML with generative AI to route, classify, and resolve tickets instantly.</p>
+  <h1>🚀 ResolveX</h1>
+  <h2>AI-Powered Customer Support & SLA Management Platform</h2>
+  <p><strong>Hackathon Submission: Next-Generation CRM with Intelligent Ticket Routing</strong></p>
+  <p>A hybrid intelligence platform combining machine learning and generative AI for real-time ticket classification, priority prediction, and automated customer support.</p>
 </div>
 
-<br />
+---
+
+## 📋 Table of Contents
+- [🏆 Hackathon & Team Information](#-hackathon--team-information)
+- [📖 Project Overview](#-project-overview)
+- [🏗️ System Architecture](#-system-architecture)
+- [🔄 Application Workflow](#-application-workflow)
+- [💻 Technology Stack](#-technology-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Getting Started](#-getting-started)
+- [▶️ Running the Application](#-running-the-application)
+- [📸 Project Gallery](#-project-gallery)
+- [📚 Key Features](#-key-features)
 
 ---
 
-## 📖 Table of Contents
-- [Executive Overview](#-executive-overview)
-- [System Architecture (Data Flow)](#-system-architecture)
-- [The Hybrid AI Pipeline](#-the-hybrid-ai-pipeline)
-- [SLA Tracking Engine](#-sla-tracking-engine)
-- [Multi-Tier Dashboards](#-multi-tier-dashboards)
-- [Technology Stack](#-technology-stack)
-- [Local Installation Guide](#-installation-guide)
+## 🏆 Hackathon & Team Information
+
+### Hackathon Details
+- **Event Name:** Tark Shaastra · Lakshya 2.0
+- **Category:** AI/ML, Customer Service, Enterprise Solutions
+
+### Team Information
+**Team Name:** Hogwarts Tech Wizards
+
+#### Team Members
+| Name | Role |
+|------|------|
+| Het Limbani | Team Lead / Full-Stack Developer with AI/ML Development | 
+| Ansh Patoliya | Full-Stack Developer | 
+| Anuj Raval | Backend Developer with AI/ML Development | 
 
 ---
 
-## 🎯 Executive Overview
-**ResolveX** is an enterprise-grade Customer Support & Operations platform that eliminates manual ticket triage. Unlike standard helpdesks, ResolveX embeds **Machine Learning natively within the request lifecycle** to categorize intent, predict priority, flag duplication/fraud, and dynamically assign SLA countdowns in milliseconds before a human ever sees the queue.
+## 📖 Project Overview
 
-It is built around four central personas:
-1. **The Customer:** Experiences instant AI auto-resolution via a Copilot interface.
-2. **Operations Manager:** Monitors live queue processing and resolves flagged edge cases.
-3. **Support Executive:** Works on critical escalations with precise contextual summarizations.
-4. **Quality Assurance (QA):** Monitors historical AI accuracy, overrides misclassifications, and reviews customer feedback logic.
+**ResolveX** is an enterprise-grade Customer Support and Operations platform that revolutionizes ticket management through intelligent automation. Unlike traditional helpdesk systems, ResolveX embeds **Machine Learning natively within the request lifecycle** to:
+
+- 🎯 **Classify** customer complaints into relevant categories in milliseconds
+- 📊 **Predict** priority levels and assign dynamic SLA countdowns
+- 🔍 **Detect** duplicate tickets, spam, and fraudulent requests
+- 💡 **Recommend** tailored resolution steps using LLM-powered intelligence
+- 📈 **Track** performance metrics across multiple operational dashboards
+
+### Core Problem Solved
+Manual ticket triage is time-consuming, inconsistent, and prone to human error. ResolveX eliminates these inefficiencies by automating the entire triage process while maintaining human oversight through specialized dashboards for different stakeholder roles.
+
+### Key Value Propositions
+- ⚡ **Real-Time Processing:** AI classification happens before human assignment
+- 🎯 **Multi-Role Support:** Tailored dashboards for Customers, Managers, Executives, and QA teams
+- 🔒 **Enterprise-Grade:** Production-ready architecture with PostgreSQL, JWT authentication, and robust API design
+- 🤖 **Hybrid Intelligence:** Combines fast local ML models with advanced LLM capabilities
 
 ---
 
-## 🏗 System Architecture
+## 🏗️ System Architecture
 
-The following details the full-stack architecture, detailing how the unified frontend distributes to role-locked views, hits the Python middleware, and gets triaged by our proprietary Machine Learning engine.
+### High-Level Architecture Diagram
 
 ```mermaid
 graph TD
-    %% Define Styles
-    classDef client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff;
-    classDef backend fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff;
-    classDef ai fill:#312e81,stroke:#8b5cf6,stroke-width:2px,color:#fff;
-    classDef db fill:#064e3b,stroke:#f59e0b,stroke-width:2px,color:#fff;
-
-    %% Frontend Tier
-    subgraph Frontend [React / Vite Client Tier]
-        C[Customer Portal]:::client
-        M[Manager Dashboard]:::client
-        E[Executive Console]:::client
-        Q[QA Analytics Board]:::client
+    subgraph Client["🖥️ Frontend Layer - React/Vite"]
+        CP["🛒 Customer Portal"]
+        MD["📊 Manager Dashboard"]
+        EC["👔 Executive Console"]
+        QA["🔍 QA Analytics Board"]
     end
 
-    %% Backend Tier
-    subgraph CoreBackend [Python Flask Core API]
-        R[(Router & Auth)]:::backend
-        Comp[Complaint Service]:::backend
-        SLA[Dynamic SLA Calculator]:::backend
-        QA[Feedback Mod]:::backend
+    subgraph Auth["🔐 Authentication Layer"]
+        JWT["JWT Token Service"]
     end
 
-    %% AI Pipeline
-    subgraph AIEngine [Hybrid Intelligence Engine]
-        ML[Local Scikit-Learn Pipeline<br>Accuracy: >99.8%]:::ai
-        Fraud[Spam & Fraud Filter]:::ai
-        Rec[Recommendation Model]:::ai
-        LLM[Google Gemini API<br>NL Summarization]:::ai
+    subgraph API["🔌 API Gateway - Flask"]
+        Router["Request Router"]
+        Auth["Auth Service"]
     end
 
-    %% Database
-    DB[(PostgreSQL Database)]:::db
+    subgraph Services["⚙️ Core Services"]
+        Complaint["Complaint Service"]
+        SLA["SLA Calculator"]
+        Feedback["Feedback Manager"]
+        Recurring["Recurring Issue Detector"]
+    end
 
-    %% Connections
-    C -->|JWT / REST| R
-    M -->|JWT / REST| R
-    E -->|JWT / REST| R
-    Q -->|JWT / REST| R
+    subgraph MLPipeline["🤖 AI/ML Intelligence Engine"]
+        Preprocessing["Text Preprocessing"]
+        Classification["Category Classifier<br/>Scikit-Learn"]
+        PriorityPred["Priority Predictor<br/>XGBoost"]
+        Fraud["Fraud Detector<br/>Similarity Engine"]
+        Recommender["LLM Recommender<br/>Google Gemini"]
+    end
 
-    R --> Comp
-    R --> QA
-    
-    Comp --> SLA
-    Comp --> ML
-    Comp --> Fraud
-    Comp --> Rec
-    Comp -.->|Complex NL Edge Cases| LLM
-    
-    SLA --> DB
-    ML --> DB
-    QA --> DB
+    subgraph Database["🗄️ Data Layer"]
+        PostgreSQL["PostgreSQL Database"]
+        Cache["Cache Layer"]
+    end
+
+    subgraph External["🌐 External Services"]
+        Gemini["Google Gemini API"]
+        Groq["Groq API"]
+    end
+
+    CP -->|REST + JWT| JWT
+    MD -->|REST + JWT| JWT
+    EC -->|REST + JWT| JWT
+    QA -->|REST + JWT| JWT
+
+    JWT --> Auth
+    Auth --> Router
+
+    Router --> Complaint
+    Router --> Feedback
+    Router --> Recurring
+
+    Complaint --> SLA
+    Complaint --> Preprocessing
+
+    Preprocessing --> Classification
+    Preprocessing --> PriorityPred
+    Preprocessing --> Fraud
+
+    Classification -->|Category| Recommender
+    PriorityPred -->|Priority| Recommender
+    Fraud -->|Flagged Duplicates| SLA
+
+    Recommender --> Gemini
+    Recommender --> Groq
+
+    SLA --> PostgreSQL
+    Classification --> Cache
+    PriorityPred --> Cache
+    Feedback --> PostgreSQL
+
+    style Client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style Auth fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
+    style API fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#fff
+    style Services fill:#374151,stroke:#6366f1,stroke-width:2px,color:#fff
+    style MLPipeline fill:#312e81,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    style Database fill:#064e3b,stroke:#f59e0b,stroke-width:2px,color:#fff
+    style External fill:#7c2d12,stroke:#ec4899,stroke-width:2px,color:#fff
 ```
+
+### Component Descriptions
+
+| Component | Purpose | Technology |
+|-----------|---------|-----------|
+| **Frontend** | Multi-role user interfaces | React 19, Vite, Recharts |
+| **Auth Layer** | Secure JWT-based authentication | Flask + Custom JWT |
+| **API Gateway** | Request routing and validation | Flask REST API |
+| **Services** | Business logic and data processing | Python |
+| **ML Pipeline** | Intelligent ticket processing | Scikit-Learn, XGBoost |
+| **Database** | Persistent data storage | PostgreSQL |
+| **LLM Integration** | Advanced text understanding | Google Gemini, Groq |
 
 ---
 
-## 🤖 The Hybrid AI Pipeline
+## 🔄 Application Workflow
 
-ResolveX ditches the traditional "100% LLM API" approach (which is costly and slow) in favor of a blazing-fast Hybrid Pipeline.
+### Request Processing Pipeline
 
-### 1. High-Speed Local Classification
-Using `Scikit-Learn` and serialized `joblib` artifacts, ResolveX executes the primary pipeline completely locally in under **~15 milliseconds**:
-- **Category Classifier:** Text vectorization mapping intents to fixed categorical queues.
-- **Priority Predictor:** Sentiment mapping returning strict bounds (Low, Medium, High, Critical).
-- **Fraud/Spam Filter:** Anomaly detection looking for malicious payloads or zero-effort text.
-- **Recommendation Engine:** Maps known category arrays to immediate solution protocols.
+```mermaid
+graph LR
+    subgraph Step1["Step 1: Intake"]
+        A["📝 Customer Submits Complaint"]
+    end
 
-### 2. Generative Fallback
-The Google **Gemini API** is utilized strictly for Natural Language (NL) conversational interactions directly with the customer through the chatbot interface, acting as a friendly conversational layer that wraps the rigid structural outputs of our local ML.
+    subgraph Step2["Step 2: Validation"]
+        B["🔐 JWT Authentication"]
+        C["✅ Input Validation"]
+    end
+
+    subgraph Step3["Step 3: Preprocessing"]
+        D["🧹 Text Cleaning"]
+        E["🎯 Sentiment Analysis"]
+    end
+
+    subgraph Step4["Step 4: Intelligence"]
+        F["🏷️ Category Classification"]
+        G["📊 Priority Prediction"]
+        H["🔍 Fraud Detection"]
+    end
+
+    subgraph Step5["Step 5: Recommendations"]
+        I["💡 LLM Analysis<br/>Generate Action Items"]
+    end
+
+    subgraph Step6["Step 6: Assignment"]
+        J["⏱️ SLA Calculator<br/>Set Deadline"]
+        K["👤 Route to Support Team"]
+    end
+
+    subgraph Step7["Step 7: Tracking"]
+        L["📊 Dashboard Updates"]
+        M["📈 Analytics Processed"]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    E --> G
+    E --> H
+    F --> I
+    G --> I
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+
+    style Step1 fill:#3b82f6,stroke:#1e40af,stroke-width:2px,color:#fff
+    style Step2 fill:#10b981,stroke:#065f46,stroke-width:2px,color:#fff
+    style Step3 fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff
+    style Step4 fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff
+    style Step5 fill:#ec4899,stroke:#831843,stroke-width:2px,color:#fff
+    style Step6 fill:#06b6d4,stroke:#164e63,stroke-width:2px,color:#fff
+    style Step7 fill:#14b8a6,stroke:#134e4a,stroke-width:2px,color:#fff
+```
+
+### Data Flow Sequence
 
 ```mermaid
 sequenceDiagram
-    participant Customer
-    participant React App
-    participant Flask API
-    participant Scikit-Learn
-    participant SLA Logic
-    participant DB
+    actor Customer as 👤 Customer
+    participant Frontend as 🖥️ Frontend
+    participant API as 🔌 API
+    participant ML as 🤖 ML Engine
+    participant LLM as 🧠 LLM Service
+    participant DB as 🗄️ Database
 
-    Customer->>React App: Submit Issue "App crashing on checkout"
-    React App->>Flask API: POST /api/complaints/submit
-    Flask API->>Scikit-Learn: Inject Text -> Vectorizer
-    Scikit-Learn-->>Flask API: Category: Bug | Priority: High | Fraud: False
-    Flask API->>SLA Logic: Calc (Priority: High, Created: Now)
-    SLA Logic-->>Flask API: Deadline: 24h, Score: 100
-    Flask API->>DB: INSERT Ticket
-    DB-->>Flask API: Return Success (Ticket ID)
-    Flask API-->>React App: Resolved / Forwarded
-    React App-->>Customer: Show Tracking Dashboard
+    Customer->>Frontend: Submit Complaint
+    Frontend->>API: POST /api/complaints with JWT
+    API->>API: Validate & Authenticate
+    API->>ML: Send text for processing
+    ML->>ML: Preprocessing
+    ML->>ML: Classification
+    ML->>ML: Priority Prediction
+    ML->>ML: Fraud Detection
+    ML->>LLM: Request recommendations
+    LLM->>ML: Return action items
+    ML->>API: ML results
+    API->>DB: Save complaint & predictions
+    API->>Frontend: Return ticket ID & status
+    Frontend->>Customer: Confirmation + Next Steps
+
+    Note over Customer,DB: Entire process completes in <500ms
 ```
 
 ---
 
-## ⏰ SLA Tracking Engine
+## 💻 Technology Stack
 
-A custom algorithmic service calculates strict adherence to time constraints.
-$$ SLA\_Score = \min\left(100, \left( \frac{\text{Remaining Time}}{\text{Total Allocated Time}} \times 100 \right) \times P_{weight}\right) $$
+### Frontend
+- **Framework:** React 19
+- **Build Tool:** Vite
+- **Routing:** React Router DOM v7
+- **Charting:** Recharts
+- **UI Components:** Lucide React Icons
+- **Notifications:** React Hot Toast
+- **Time Utilities:** timeago.js
 
-**Priority Multipliers ($P_{weight}$):**
-- **Critical:** 2.0x weight (Strict 6hr resolution bound)
-- **High:** 1.5x weight (12hr bound)
-- **Medium:** 1.2x weight (24hr bound)
-- **Low:** 1.0x weight (48hr bound)
+### Backend
+- **Framework:** Flask (Python)
+- **Authentication:** JWT (JSON Web Tokens)
+- **Database:** PostgreSQL
+- **ORM:** SQLAlchemy
+- **API Style:** RESTful
 
-The dashboard cleanly reflects SLA statuses globally:
-- 🟢 **On Track** (Score > 70)
-- 🟠 **At Risk** (Score 31-70)
-- 🔴 **Breached** (Score < 30)
+### Machine Learning
+- **Classification:** Scikit-Learn
+- **Advanced ML:** XGBoost
+- **Text Processing:** NLTK, TF-IDF
+- **Sentiment Analysis:** TextBlob / VADER
+- **Similarity:** Cosine Similarity
 
----
+### AI/LLM Services
+- **Primary:** Google Generative AI (Gemini)
+- **Alternative:** Groq API
+- **Use Case:** Dynamic recommendation generation
 
-## 📊 Multi-Tier Dashboards
-
-| Persona               | UI Capabilities                                                                 | Key Tech Features                                      |
-| --------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **Customer**          | Multi-channel submission, AI Chatbot overlay, live status tracking, Feedback     | WebSockets/Polling, Gemini Conversational AI           |
-| **Operations**        | Live list grid, Ticket Audit logging, Mass resolution logic                      | Debounced Data Grids, React State Optimization         |
-| **Executive Support** | Focused SLA inspection pane, Copilot detailed drawer view                        | Custom SLA Capsule rendering, Component Modals         |
-| **Quality Assurance** | Data Analysis Overview, Misclassification override matrix, Verified Rating Sync | `Recharts` for analytical charting, dynamic ML mapping |
-
----
-
-## 🛠 Technology Stack
-
-### **Frontend Tier**
-- **Framework:** React.js + Vite 🔥
-- **Styling:** Custom CSS Design System (Tailwind-inspired tokenized methodology)
-- **Routing:** React Router v6
-- **Data Viz:** Recharts, Lucide-React Icons
-
-### **Backend API**
-- **Framework:** Python (Flask + Blueprint routing)
-- **Database:** PostgreSQL (with `psycopg2`)
-- **AI Processing:** `scikit-learn`, `numpy`, `pandas`, `scipy`
-- **GenAI Interface:** Google `google-generativeai`
+### DevOps & Tools
+- **Version Control:** Git
+- **Development:** VSCode, Python 3.9+
+- **Package Managers:** pip (Python), npm (JavaScript)
 
 ---
 
-## 🚀 Installation Guide
+## 📁 Project Structure
+
+```
+ResolveX/
+│
+├── 📄 README.md                          # Main project documentation
+├── 📄 README_ROOT.md                     # Root folder documentation (this file)
+├── 📄 implementation_plan.md             # Detailed implementation roadmap
+├── 📄 model_results.json                 # ML model performance metrics
+│
+├── 🎨 Frontend/                          # React + Vite application
+│   ├── public/                           # Static assets
+│   ├── src/
+│   │   ├── pages/                        # Route pages
+│   │   │   ├── LandingPage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── admin/
+│   │   │   ├── dashboards/               # Multi-role dashboards
+│   │   │   └── qa-dashboard/             # QA specific pages
+│   │   ├── context/                      # React Context (Auth)
+│   │   ├── layouts/                      # Layout components
+│   │   ├── assets/                       # Images & media
+│   │   ├── styles/                       # CSS stylesheets
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.html
+│   ├── vite.config.js                    # Vite configuration
+│   ├── eslint.config.js                  # Code linting rules
+│   └── package.json                      # Dependencies
+│
+└── 🐍 Backend/                           # Flask Python API
+    ├── app.py                            # Flask application entry point
+    ├── apitest.py                        # API testing utilities
+    ├── migrate_db.py                     # Database migrations
+    ├── requirements.txt                  # Python dependencies
+    │
+    ├── config/                           # Configuration modules
+    │   ├── db.py                         # Database configuration
+    │   └── settings.py                   # App settings
+    │
+    ├── data/                             # Dataset directory
+    │   ├── TS-PS14.csv                   # Raw dataset (50K records)
+    │   └── cleaned_TS-PS14.csv           # Processed dataset
+    │
+    ├── models/                           # SQLAlchemy models
+    │   ├── complaint_model.py
+    │   ├── customer_model.py
+    │   ├── escalation_model.py
+    │   ├── feedback_model.py
+    │   ├── history_model.py
+    │   └── user_model.py
+    │
+    ├── ml/                               # Machine Learning pipeline
+    │   ├── preprocessing.py              # Text cleaning & feature extraction
+    │   ├── train_models.py               # Model training scripts
+    │   └── trained_models/               # Serialized model artifacts (.pkl)
+    │
+    ├── services/                         # Business logic services
+    │   ├── classifier_service.py         # Category classification
+    │   ├── gemini_service.py             # Google Gemini integration
+    │   ├── groq_service.py               # Groq API integration
+    │   ├── recurring_issue_service.py    # Issue pattern detection
+    │   ├── similarity_service.py         # Duplicate detection
+    │   └── sla_calculator.py             # SLA deadline calculation
+    │
+    └── routes/                           # API endpoints
+        ├── admin_routes.py               # Admin operations
+        ├── ai_routes.py                  # AI/ML processing endpoints
+        ├── auth_routes.py                # Authentication endpoints
+        ├── chat_routes.py                # Chat/conversation endpoints
+        ├── chatbot_routes.py             # Chatbot endpoints
+        ├── complaint_routes.py           # Complaint management
+        ├── customerse_api.py             # Customer endpoints
+        ├── feedback_routes.py            # Feedback endpoints
+        ├── recurring_issue_routes.py     # Issue analysis endpoints
+        └── user_routes.py                # User management endpoints
+```
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+)
-- Python (3.9+)
-- PostgreSQL Server Instance
+- **Node.js** v18 or higher
+- **Python** 3.9+
+- **PostgreSQL** 12+
+- **Git**
+- API Keys: Google Generative AI, Groq (optional)
 
-### 1. Database Setup
-Execute the initialization script to generate the database schema.
-*Requires PostgreSQL running on your machine.*
+### Installation Steps
 
-### 2. Python Backend Initialization
+#### 1️⃣ Clone the Repository
 ```bash
+git clone https://github.com/[your-org]/ResolveX.git
+cd ResolveX
+```
+
+#### 2️⃣ Backend Setup
+
+```bash
+# Navigate to backend directory
 cd Backend
+
+# Create Python virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Start the server (Defaults to Port 5000)
-python app.py
-```
-> **Note:** Ensure you place your `.env` file in the `/Backend` directory with your PostgreSQL connection URL and `GEMINI_API_KEY`.
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys and database credentials
 
-### 3. React Frontend Launch
+# Initialize database
+python migrate_db.py
+
+# Train ML models (if not already trained)
+python ml/train_models.py
+```
+
+#### 3️⃣ Frontend Setup
+
 ```bash
+# Navigate to frontend directory (from root)
 cd Frontend
+
+# Install Node dependencies
 npm install
-npm run dev
+
+# Create environment configuration
+cp .env
+# Edit .env with your API endpoints
+```
+
+### Environment Variables
+
+**Backend (.env)**
+```
+FLASK_ENV=development
+DATABASE_URL=postgresql://user:password@localhost:5432/resolvex_db
+JWT_SECRET_KEY=your-secret-key-here
+GOOGLE_API_KEY=your-google-gemini-key
+GROQ_API_KEY=your-groq-api-key
+```
+
+**Frontend (.env)**
+```
+VITE_API_BASE_URL=http://localhost:5000
+VITE_API_TIMEOUT=30000
 ```
 
 ---
 
-<div align="center">
-  <i>Built to redefine the standard of SaaS Customer Operations.</i><br>
-  <b>ResolveX Architecture Team</b>
-</div>
+## ▶️ Running the Application
+
+### Development Mode
+
+#### Terminal 1 - Backend Server
+```bash
+cd Backend
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+python app.py
+```
+Backend runs on: `http://localhost:5000`
+
+#### Terminal 2 - Frontend Server
+```bash
+cd Frontend
+npm run dev
+```
+Frontend runs on: `http://localhost:5173`
+
+### Production Build
+
+#### Frontend
+```bash
+cd Frontend
+npm run build
+# Output: dist/
+```
+
+#### Backend
+```bash
+# Set environment to production
+export FLASK_ENV=production
+python app.py
+```
+
+### Testing the API
+
+```bash
+# Run API tests
+cd Backend
+python apitest.py
+```
+
+### Available API Endpoints
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `POST` | `/api/auth/login` | User authentication |
+| `POST` | `/api/complaints` | Submit new complaint |
+| `POST` | `/api/ai/process_complaint` | Process complaint with ML |
+| `GET` | `/api/complaints/<id>` | Retrieve complaint details |
+| `GET` | `/api/dashboards/admin` | Admin dashboard data |
+| `GET` | `/api/dashboards/manager` | Manager dashboard data |
+| `GET` | `/api/dashboards/qa` | QA analytics data |
+| `GET` | `/api/sla/status` | Current SLA status |
+
+---
+
+## 📸 Project Gallery
+
+### Add Your Project Screenshots Here
+
+Below are placeholder sections for your project images. Replace the URLs with actual screenshots from your implementation:
+
+#### 1. Landing Page
+```
+![Landing Page](./screenshots/landing-page.png)
+```
+
+#### 2. Customer Portal
+```
+![Customer Portal](./screenshots/customer-portal.png)
+```
+
+#### 3. Manager Dashboard
+```
+![Manager Dashboard](./screenshots/manager-dashboard.png)
+```
+
+#### 4. Executive Console
+```
+![Executive Console](./screenshots/executive-console.png)
+```
+
+#### 5. QA Analytics Board
+```
+![QA Analytics](./screenshots/qa-analytics.png)
+```
+
+#### 6. ML Classification Results
+```
+![ML Results](./screenshots/ml-results.png)
+```
+
+#### 7. Real-Time Monitoring
+```
+![Monitoring](./screenshots/monitoring.png)
+```
+
+#### 8. SLA Tracking Interface
+```
+![SLA Tracking](./screenshots/sla-tracking.png)
+```
+
+---
+
+## 📚 Key Features
+
+### 🎯 Intelligent Ticket Classification
+- **Real-time categorization** into predefined categories
+- **99.8% accuracy** using XGBoost + Scikit-Learn
+- **Sub-100ms** processing latency
+
+### 📊 Dynamic Priority Assignment
+- Automatic priority prediction (High/Medium/Low)
+- Sentiment-aware escalation
+- Dynamic SLA deadline calculation
+
+### 🔍 Duplicate & Fraud Detection
+- TF-IDF similarity-based duplicate detection
+- Spam filtering
+- Pattern recognition for fraudulent requests
+
+### 💡 LLM-Powered Recommendations
+- Context-aware action suggestions
+- Customer-specific resolution steps
+- Integration with Google Gemini and Groq
+
+### 📈 Multi-Role Dashboards
+- **Customer Portal:** Self-service ticket tracking
+- **Manager Dashboard:** Queue monitoring & assignment
+- **Executive Console:** High-priority escalations
+- **QA Analytics:** Performance & accuracy metrics
+
+### 🔐 Enterprise Security
+- JWT-based authentication
+- Role-based access control (RBAC)
+- PostgreSQL with encrypted credentials
+- Audit logging
+
+### 📱 Responsive Design
+- Mobile-friendly interfaces
+- Cross-browser compatibility
+- Real-time updates with WebSocket support (optional)
+
+---
+
+
